@@ -20,36 +20,13 @@ public class Main {
 
         SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
 
-        // Make nodes with each currency
-        for (Asset asset : client.getAllAssets()) {
-            // ONLY TAKES NODES WITH 3 LETTERS
-            String assetCode = asset.getAssetCode();
-
-            if (assetCode.length() == 3) {
-                graph.addVertex(assetCode);
-                //System.out.println("Added node: " + assetCode);
-            }
-        }
-        graph.removeVertex("TUSD");
+        createGraphNodes(client, graph);
         System.out.println("Created graph nodes");
 
+        createEdgesForGraph(graph);
 
-        // Uses file to make all edges between nodes with weights
-        BufferedReader bufferedReader = new BufferedReader(new FileReader("data.txt"));
-        String line;
-        while ((line = bufferedReader.readLine()) != null) {
-            String[] elements = line.split(", ");
-            String baseAssetCode = elements[0].substring(0, 3);
-            String quoteAssetCode = elements[0].substring(3, 6);
 
-            DefaultWeightedEdge baseToQuoteEdge = graph.addEdge(baseAssetCode, quoteAssetCode);
-            graph.setEdgeWeight(baseToQuoteEdge, Double.parseDouble(elements[1]));
-
-            DefaultWeightedEdge quoteToBaseEdge = graph.addEdge(quoteAssetCode, baseAssetCode);
-            graph.setEdgeWeight(quoteToBaseEdge, 1.0 / Double.parseDouble(elements[2]));
-        }
-
-        double cashMoney = 1000.0;
+        Double cashMoney = 1000.0;
 
         JohnsonSimpleCycles<String, DefaultWeightedEdge> johnsonSimpleCycles = new JohnsonSimpleCycles<>(graph);
         for (List<String> cycle : johnsonSimpleCycles.findSimpleCycles()) {
@@ -73,6 +50,37 @@ public class Main {
 
         System.out.println("Done");
         System.exit(0);
+    }
+
+    private static void createGraphNodes(BinanceApiRestClient client, SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) {
+        // Make nodes with each currency
+        for (Asset asset : client.getAllAssets()) {
+            // ONLY TAKES NODES WITH 3 LETTERS
+            String assetCode = asset.getAssetCode();
+
+            if (assetCode.length() == 3) {
+                graph.addVertex(assetCode);
+                //System.out.println("Added node: " + assetCode);
+            }
+        }
+        graph.removeVertex("TUSD");
+    }
+
+    private static void createEdgesForGraph(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) throws IOException {
+        // Uses file to make all edges between nodes with weights
+        BufferedReader bufferedReader = new BufferedReader(new FileReader("data.txt"));
+        String line;
+        while ((line = bufferedReader.readLine()) != null) {
+            String[] elements = line.split(", ");
+            String baseAssetCode = elements[0].substring(0, 3);
+            String quoteAssetCode = elements[0].substring(3, 6);
+
+            DefaultWeightedEdge baseToQuoteEdge = graph.addEdge(baseAssetCode, quoteAssetCode);
+            graph.setEdgeWeight(baseToQuoteEdge, Double.parseDouble(elements[1]));
+
+            DefaultWeightedEdge quoteToBaseEdge = graph.addEdge(quoteAssetCode, baseAssetCode);
+            graph.setEdgeWeight(quoteToBaseEdge, 1.0 / Double.parseDouble(elements[2]));
+        }
     }
 }
 

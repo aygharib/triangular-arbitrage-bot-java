@@ -3,27 +3,17 @@ package com.develorain;
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.general.Asset;
-import com.binance.api.client.domain.market.BookTicker;
-import com.binance.api.client.domain.market.TickerPrice;
-import com.binance.api.client.domain.market.TickerStatistics;
-import org.jgrapht.Graph;
 import org.jgrapht.alg.cycle.JohnsonSimpleCycles;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
-import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
-import org.jgrapht.graph.*;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        double cashMoney = 1000.0;
-
-
         // Set up binance client
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("My2zlMkv4yorboQMABkUSqcNosJEqVZNi6JzPEvQovzbiVusGrf0ZkLF9rHkQAe7", "nUecuN1O33QAYXLdY76s12BME3fLafphBhj0kUl67Cs3seYxp8xzJ8JqVD7mYwJr");
         BinanceApiRestClient client = factory.newRestClient();
@@ -44,7 +34,6 @@ public class Main {
         System.out.println("Created graph nodes");
 
 
-
         // Uses file to make all edges between nodes with weights
         BufferedReader bufferedReader = new BufferedReader(new FileReader("data.txt"));
         String line;
@@ -60,13 +49,27 @@ public class Main {
             graph.setEdgeWeight(quoteToBaseEdge, 1.0 / Double.parseDouble(elements[2]));
         }
 
+        double cashMoney = 1000.0;
 
-        System.out.println(graph.getEdgeWeight(graph.getEdge("BNB", "SKY")));
-        System.out.println(graph.getEdgeWeight(graph.getEdge("SKY", "BTC")));
-        System.out.println(graph.getEdgeWeight(graph.getEdge("BTC", "NAS")));
-        System.out.println(graph.getEdgeWeight(graph.getEdge("NAS", "BNB")));
+        JohnsonSimpleCycles<String, DefaultWeightedEdge> johnsonSimpleCycles = new JohnsonSimpleCycles<>(graph);
+        for (List<String> cycle : johnsonSimpleCycles.findSimpleCycles()) {
+            if (cycle.size() > 2 && cycle.size() < 5) {
+                int size = cycle.size();
+                System.out.println(cycle);
 
-        System.out.println("TOTAL:" + cashMoney);
+                // Computes profit
+                for (int i = 0; i < size; i++) {
+                    cashMoney *= graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)));
+                    //System.out.println(i + ":" + graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size))));
+                }
+
+                if (cashMoney != Double.POSITIVE_INFINITY && cashMoney != Double.NEGATIVE_INFINITY && cashMoney != 0.0 && !cashMoney.isNaN()) {
+                    System.out.println("Total: " + cashMoney);
+                }
+
+                cashMoney = 1000.0;
+            }
+        }
 
         System.out.println("Done");
         System.exit(0);

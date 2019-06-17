@@ -10,6 +10,8 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
@@ -18,38 +20,50 @@ public class Main {
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("My2zlMkv4yorboQMABkUSqcNosJEqVZNi6JzPEvQovzbiVusGrf0ZkLF9rHkQAe7", "nUecuN1O33QAYXLdY76s12BME3fLafphBhj0kUl67Cs3seYxp8xzJ8JqVD7mYwJr");
         BinanceApiRestClient client = factory.newRestClient();
 
+        // Initialize graph
         SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
-
         createGraphNodes(client, graph);
         System.out.println("Created graph nodes");
+        createGraphEdges(graph);
 
-        createEdgesForGraph(graph);
+        printCycles(graph);
 
+        System.out.println("Done");
+        System.exit(0);
+    }
 
+    private static void printCycles(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) {
         Double cashMoney = 1000.0;
+
+        ArrayList<Tuple> cycleMoneyTuples = new ArrayList<>();
 
         JohnsonSimpleCycles<String, DefaultWeightedEdge> johnsonSimpleCycles = new JohnsonSimpleCycles<>(graph);
         for (List<String> cycle : johnsonSimpleCycles.findSimpleCycles()) {
             if (cycle.size() > 2 && cycle.size() < 5) {
                 int size = cycle.size();
-                System.out.println(cycle);
 
                 // Computes profit
                 for (int i = 0; i < size; i++) {
                     cashMoney *= graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)));
-                    //System.out.println(i + ":" + graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size))));
                 }
 
-                if (cashMoney != Double.POSITIVE_INFINITY && cashMoney != Double.NEGATIVE_INFINITY && cashMoney != 0.0 && !cashMoney.isNaN()) {
-                    System.out.println("Total: " + cashMoney);
+                // Add to array list if valid price
+                if (cashMoney != Double.POSITIVE_INFINITY && cashMoney != Double.NEGATIVE_INFINITY && cashMoney != 0.0 && !Double.isNaN(cashMoney)) {
+                    cycleMoneyTuples.add(new Tuple(cycle, cashMoney));
                 }
 
                 cashMoney = 1000.0;
             }
         }
 
-        System.out.println("Done");
-        System.exit(0);
+        // Sort tuples by price
+        Object[] array = cycleMoneyTuples.toArray();
+        Arrays.sort(array);
+
+        for (Object a : array) {
+            Tuple woo = (Tuple) a;
+            System.out.println(woo);
+        }
     }
 
     private static void createGraphNodes(BinanceApiRestClient client, SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) {
@@ -66,7 +80,7 @@ public class Main {
         graph.removeVertex("TUSD");
     }
 
-    private static void createEdgesForGraph(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) throws IOException {
+    private static void createGraphEdges(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) throws IOException {
         // Uses file to make all edges between nodes with weights
         BufferedReader bufferedReader = new BufferedReader(new FileReader("data.txt"));
         String line;

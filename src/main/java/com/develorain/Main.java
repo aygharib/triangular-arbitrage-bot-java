@@ -36,6 +36,12 @@ public class Main {
     }
 
     private static void createCyclesAndWriteToFile(SimpleDirectedWeightedGraph<String, CustomEdge> graph) throws IOException {
+
+
+
+        FileWriter fileWriter2 = new FileWriter("amounts.txt");
+
+
         Double balance = 100.0;
 
         ArrayList<Tuple> cycleMoneyTuples = new ArrayList<>();
@@ -43,13 +49,38 @@ public class Main {
         JohnsonSimpleCycles<String, CustomEdge> johnsonSimpleCycles = new JohnsonSimpleCycles<>(graph);
         for (List<String> cycle : johnsonSimpleCycles.findSimpleCycles()) {
             if (cycle.size() > 2 && cycle.size() < 5) {
+                String originalCurrency = cycle.get(0);
+                System.out.println(originalCurrency);
+
                 int size = cycle.size();
+
+                ArrayList<Double> conversions = new ArrayList<>();
+                ArrayList<Double> amounts = new ArrayList<>();
 
                 // Computes profit
                 for (int i = 0; i < size; i++) {
-                    balance = balance * graph.getEdge(cycle.get(i), cycle.get((i+1) % size)).getPrice() * percentage;
-                    //balance = balance * graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size))) * percentage;
+                    conversions.add(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)).getPrice());
+                    amounts.add(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)).getAmount());
                 }
+
+                for (int i = 0; i < size; i++) {
+                    balance = balance * conversions.get(i) * percentage;
+                }
+
+                for (int i = 1; i < size; i++) {
+                    for (int j = 1; j <= i; j++) {
+                        amounts.set(j, amounts.get(j) * conversions.get(i));
+                    }
+                }
+
+                Double minimumAmountToTrade = Double.MAX_VALUE;
+
+                for (Double num : amounts) {
+                    minimumAmountToTrade = Math.min(minimumAmountToTrade, num);
+                }
+
+                fileWriter2.write(cycle + ", " + minimumAmountToTrade + "\n");
+
 
                 // Add to array list if valid price
                 if (balance != Double.POSITIVE_INFINITY && balance != Double.NEGATIVE_INFINITY && balance != 0.0 && !Double.isNaN(balance)) {
@@ -59,6 +90,8 @@ public class Main {
                 balance = 100.0;
             }
         }
+
+        fileWriter2.close();
 
         FileWriter fileWriter = new FileWriter("cycles.txt");
 

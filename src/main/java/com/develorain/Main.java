@@ -3,18 +3,23 @@ package com.develorain;
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.general.Asset;
+import com.binance.api.client.domain.market.BookTicker;
 import org.jgrapht.alg.cycle.JohnsonSimpleCycles;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class Main {
+    static Double percentage = 1 - 0.000750;
+
+
     public static void main(String[] args) throws IOException {
         // Set up binance client
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("My2zlMkv4yorboQMABkUSqcNosJEqVZNi6JzPEvQovzbiVusGrf0ZkLF9rHkQAe7", "nUecuN1O33QAYXLdY76s12BME3fLafphBhj0kUl67Cs3seYxp8xzJ8JqVD7mYwJr");
@@ -24,16 +29,15 @@ public class Main {
         SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
         createGraphNodes(client, graph);
         System.out.println("Created graph nodes");
-        createGraphEdges(graph);
-
-        printCycles(graph);
+        createGraphEdgesAPI(client, graph);
+        createCyclesAndWriteToFile(graph);
 
         System.out.println("Done");
         System.exit(0);
     }
 
-    private static void printCycles(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) {
-        Double cashMoney = 1000.0;
+    private static void createCyclesAndWriteToFile(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) throws IOException {
+        Double balance = 100.0;
 
         ArrayList<Tuple> cycleMoneyTuples = new ArrayList<>();
 
@@ -44,17 +48,20 @@ public class Main {
 
                 // Computes profit
                 for (int i = 0; i < size; i++) {
-                    cashMoney *= graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)));
+                    //balance = balance * graph.getEdge(cycle.get(i), cycle.get((i+1) % size)).getPrice() * percentage;
+                    balance = balance * graph.getEdgeWeight(graph.getEdge(cycle.get(i), cycle.get((i+1) % size))) * percentage;
                 }
 
                 // Add to array list if valid price
-                if (cashMoney != Double.POSITIVE_INFINITY && cashMoney != Double.NEGATIVE_INFINITY && cashMoney != 0.0 && !Double.isNaN(cashMoney)) {
-                    cycleMoneyTuples.add(new Tuple(cycle, cashMoney));
+                if (balance != Double.POSITIVE_INFINITY && balance != Double.NEGATIVE_INFINITY && balance != 0.0 && !Double.isNaN(balance)) {
+                    cycleMoneyTuples.add(new Tuple(cycle, balance));
                 }
 
-                cashMoney = 1000.0;
+                balance = 100.0;
             }
         }
+
+        FileWriter fileWriter = new FileWriter("cycles.txt");
 
         // Sort tuples by price
         Object[] array = cycleMoneyTuples.toArray();
@@ -62,8 +69,10 @@ public class Main {
 
         for (Object a : array) {
             Tuple woo = (Tuple) a;
-            System.out.println(woo);
+            fileWriter.write(woo.toString() + "\n");
         }
+
+        fileWriter.close();
     }
 
     private static void createGraphNodes(BinanceApiRestClient client, SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) {
@@ -77,10 +86,46 @@ public class Main {
                 //System.out.println("Added node: " + assetCode);
             }
         }
-        graph.removeVertex("TUSD");
     }
 
-    private static void createGraphEdges(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) throws IOException {
+    private static void createGraphEdgesAPI(BinanceApiRestClient client, SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) {
+        for (BookTicker bookTicker : client.getBookTickers()) {
+            String symbol = bookTicker.getSymbol();
+
+            if (symbol.length() != 6) {
+                continue;
+            }
+
+            // Get asset codes for base and quote
+            // REPLACE THIS WITH REGEX
+            System.out.println(symbol);
+            String baseAssetCode = symbol.substring(0, 3);
+            String quoteAssetCode = symbol.substring(3, 6);
+
+            if (!graph.containsVertex(baseAssetCode)) {
+                System.out.println("Node does not exist: " + baseAssetCode);
+                continue;
+            }
+
+            if (!graph.containsVertex(quoteAssetCode)) {
+                System.out.println("Node does not exist: " + quoteAssetCode);
+                continue;
+            }
+
+            // Connect these currencies with their corresponding weights
+            try {
+                DefaultWeightedEdge baseToQuoteEdge = graph.addEdge(baseAssetCode, quoteAssetCode);
+                graph.setEdgeWeight(baseToQuoteEdge, Double.parseDouble(bookTicker.getAskPrice()));
+
+                DefaultWeightedEdge quoteToBaseEdge = graph.addEdge(quoteAssetCode, baseAssetCode);
+                graph.setEdgeWeight(quoteToBaseEdge, 1.0/Double.parseDouble(bookTicker.getBidPrice()));
+            } catch (NullPointerException e) {
+                System.out.println("Problematic: " + symbol);
+            }
+        }
+    }
+
+    private static void createGraphEdgesOffline(SimpleDirectedWeightedGraph<String, DefaultWeightedEdge> graph) throws IOException {
         // Uses file to make all edges between nodes with weights
         BufferedReader bufferedReader = new BufferedReader(new FileReader("data.txt"));
         String line;
@@ -95,6 +140,8 @@ public class Main {
             DefaultWeightedEdge quoteToBaseEdge = graph.addEdge(quoteAssetCode, baseAssetCode);
             graph.setEdgeWeight(quoteToBaseEdge, 1.0 / Double.parseDouble(elements[2]));
         }
+
+        bufferedReader.close();
     }
 }
 

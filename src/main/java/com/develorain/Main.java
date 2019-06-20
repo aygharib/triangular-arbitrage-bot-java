@@ -13,10 +13,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Main {
     private static final Double TRANSACTION_FEE_RATIO = 1 - 0.000750;
+    private static final int HOW_MANY_CYCLES = 100;
 
     private Main()  {
         // Set up Binance client
@@ -73,8 +75,8 @@ public class Main {
         try {
             FileWriter fileWriter = new FileWriter("cycles.txt");
 
-            for (Object a : sortedCyclesByMultiplier) {
-                Cycle cycle = (Cycle) a;
+            for (int i = 0; i < HOW_MANY_CYCLES; i++) {
+                Cycle cycle = (Cycle) sortedCyclesByMultiplier[i];
                 fileWriter.write(cycle.toString() + "\n");
             }
 
@@ -86,7 +88,7 @@ public class Main {
 
     private Object[] sortCyclesByMultiplier(List<Cycle> cycleObjects3to4Size) {
         Object[] cycleObjectsArray = cycleObjects3to4Size.toArray();
-        Arrays.sort(cycleObjectsArray);
+        Arrays.sort(cycleObjectsArray, Collections.reverseOrder());
         return cycleObjectsArray;
     }
 
@@ -163,7 +165,7 @@ public class Main {
             String quoteAssetCode = symbol.substring(3, 6);
 
             if (!graph.containsVertex(baseAssetCode)) {
-                System.out.println("Warning: Attempting to create edge with non-existent node: " + quoteAssetCode);
+                System.out.println("Warning: Attempting to create edge with non-existent node: " + baseAssetCode);
                 continue;
             }
 

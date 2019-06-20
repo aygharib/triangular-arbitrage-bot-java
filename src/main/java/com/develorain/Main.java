@@ -19,83 +19,91 @@ public class Main {
     private static final Double TRANSACTION_FEE_RATIO = 1 - 0.000750;
 
     private Main()  {
-        // Set up binance client
+        // Set up Binance client
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("My2zlMkv4yorboQMABkUSqcNosJEqVZNi6JzPEvQovzbiVusGrf0ZkLF9rHkQAe7", "nUecuN1O33QAYXLdY76s12BME3fLafphBhj0kUl67Cs3seYxp8xzJ8JqVD7mYwJr");
         BinanceApiRestClient client = factory.newRestClient();
 
-        // Create graph
-        SimpleDirectedWeightedGraph<String, CustomEdge> graph = new SimpleDirectedWeightedGraph<>(CustomEdge.class);
-        createGraphNodes(client, graph);
-        createGraphEdgesAPI(client, graph);
-        generateCycles(graph);
+        SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph(client);
+        processCyclesTemp(graph);
 
         System.out.println("Done");
         System.exit(0);
     }
 
-    private void generateCycles(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+    private SimpleDirectedWeightedGraph<String, CustomEdge> createGraph(BinanceApiRestClient client) {
+        SimpleDirectedWeightedGraph<String, CustomEdge> graph = new SimpleDirectedWeightedGraph<>(CustomEdge.class);
+        createGraphNodes(client, graph);
+        createGraphEdgesAPI(client, graph);
+
+        return graph;
+    }
+
+    private List<Cycle> getCycleObjects(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+        JohnsonSimpleCycles<String, CustomEdge> cycleAlgorithm = new JohnsonSimpleCycles<>(graph);
+        List<List<String>> cycleStrings = cycleAlgorithm.findSimpleCycles();
+
+        List<Cycle> cycleObjects = new ArrayList<>();
+
+        for (List<String> cycleString : cycleStrings) {
+            cycleObjects.add(new Cycle(cycleString));
+        }
+
+        return cycleObjects;
+    }
+
+    private void processCyclesTemp(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+        List<Cycle> cycleObjects3to4Size = new ArrayList<>();
+
         try {
-            FileWriter fileWriter2 = new FileWriter("amounts.txt");
+            List<Cycle> cycleObjects = getCycleObjects(graph);
 
-            Double balance = 100.0;
+            for (Cycle cycle: cycleObjects) {
+                if (cycle.size >= 3 && cycle.size <= 6) {
 
-            ArrayList<Tuple> cycleMoneyTuples = new ArrayList<>();
+                    // Gets conversions and amounts from graph for each currency-pair
+                    for (int i = 0; i < cycle.size; i++) {
+                        String sourceNode = cycle.cycleString.get(i);
+                        String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
-            JohnsonSimpleCycles<String, CustomEdge> johnsonSimpleCycles = new JohnsonSimpleCycles<>(graph);
-            for (List<String> cycle : johnsonSimpleCycles.findSimpleCycles()) {
-                if (cycle.size() > 2 && cycle.size() < 5) {
-                    String originalCurrency = cycle.get(0);
-                    System.out.println(originalCurrency);
-
-                    int size = cycle.size();
-
-                    ArrayList<Double> conversions = new ArrayList<>();
-                    ArrayList<Double> amounts = new ArrayList<>();
-
-                    // Computes profit
-                    for (int i = 0; i < size; i++) {
-                        conversions.add(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)).getPrice());
-                        amounts.add(graph.getEdge(cycle.get(i), cycle.get((i+1) % size)).getAmount());
+                        cycle.conversions[i] = graph.getEdge(sourceNode, targetNode).getPrice();
+                        cycle.amounts[i] = graph.getEdge(sourceNode, targetNode).getAmount();
                     }
 
-                    for (int i = 0; i < size; i++) {
-                        balance = balance * conversions.get(i) * TRANSACTION_FEE_RATIO;
+                    // LOOK AT THIS CODE AGAIN (compute cycle multiplier)
+                    for (int i = 0; i < cycle.size; i++) {
+                        cycle.multiplier = cycle.multiplier * cycle.conversions[i] * TRANSACTION_FEE_RATIO;
                     }
 
-                    for (int i = 1; i < size; i++) {
+                    // LOOK AT THIS CODE AGAIN (convert amounts in units of original currency)
+                    for (int i = 1; i < cycle.size; i++) {
                         for (int j = 1; j <= i; j++) {
-                            amounts.set(j, amounts.get(j) * conversions.get(i));
+                            cycle.amounts[j] = cycle.amounts[j] * cycle.conversions[i];
                         }
                     }
 
-                    Double minimumAmountToTrade = Double.MAX_VALUE;
 
-                    for (Double num : amounts) {
-                        minimumAmountToTrade = Math.min(minimumAmountToTrade, num);
+                    double maximumAmountToTradeInOriginalCurrency = Double.MAX_VALUE;
+
+                    for (Double amount : cycle.amounts) {
+                        maximumAmountToTradeInOriginalCurrency = Math.min(maximumAmountToTradeInOriginalCurrency, amount);
                     }
 
-                    fileWriter2.write(cycle + ", " + minimumAmountToTrade + "\n");
-
-
-                    // Add to array list if valid price
-                    if (balance != Double.POSITIVE_INFINITY && balance != Double.NEGATIVE_INFINITY && balance != 0.0 && !Double.isNaN(balance)) {
-                        cycleMoneyTuples.add(new Tuple(cycle, balance));
+                    // Only add desirables
+                    if (cycle.multiplier != Double.POSITIVE_INFINITY && cycle.multiplier != Double.NEGATIVE_INFINITY && cycle.multiplier >= 1.0 && !Double.isNaN(cycle.multiplier)) {
+                        cycleObjects3to4Size.add(cycle);
                     }
 
-                    balance = 100.0;
                 }
             }
-
-            fileWriter2.close();
 
             FileWriter fileWriter = new FileWriter("cycles.txt");
 
             // Sort tuples by price
-            Object[] array = cycleMoneyTuples.toArray();
-            Arrays.sort(array);
+            Object[] cycleObjectsArray = cycleObjects3to4Size.toArray();
+            Arrays.sort(cycleObjectsArray);
 
-            for (Object a : array) {
-                Tuple woo = (Tuple) a;
+            for (Object a : cycleObjectsArray) {
+                Cycle woo = (Cycle) a;
                 fileWriter.write(woo.toString() + "\n");
             }
 

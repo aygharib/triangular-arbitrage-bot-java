@@ -5,8 +5,9 @@ import java.util.List;
 public class Cycle implements Comparable {
     public final List<String> cycleString;
     public double multiplier;
-    public double[] conversions;
-    public double[] amounts;
+    public double[] tradePrices;
+    public double[] tradeQuantitiesInStartCurrency;
+    public double[] actualTradeQuantities;
     public int size;
 
     Cycle(List<String> cycleString) {
@@ -14,8 +15,9 @@ public class Cycle implements Comparable {
         this.multiplier = 1.0;
         this.size = cycleString.size();
 
-        this.conversions = new double[cycleString.size()];
-        this.amounts = new double[cycleString.size()];
+        this.tradePrices = new double[cycleString.size()];
+        this.tradeQuantitiesInStartCurrency = new double[cycleString.size()];
+        this.actualTradeQuantities = new double[cycleString.size()];
     }
 
     @Override

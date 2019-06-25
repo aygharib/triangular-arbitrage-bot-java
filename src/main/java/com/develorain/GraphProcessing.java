@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class GraphProcessing {
-    public static Object[] getSortedCyclesByMultiplier(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+    public static Cycle[] getSortedCyclesByMultiplier(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         List<Cycle> cycleObjects3to4Size = new ArrayList<>();
 
         List<Cycle> cycleObjects = getCycleObjects(graph);
@@ -58,17 +58,22 @@ public class GraphProcessing {
             maximumAmountToTradeInStartingCurrency = Math.min(maximumAmountToTradeInStartingCurrency, amount);
         }
 
-        cycle.actualTradeQuantities[0] = maximumAmountToTradeInStartingCurrency;
+        // Force it to be 0.24 BNB
+        maximumAmountToTradeInStartingCurrency = Math.min(0.24, maximumAmountToTradeInStartingCurrency);
+
+        cycle.actualTradeQuantitiesForEachCurrency[0] = maximumAmountToTradeInStartingCurrency;
 
         for (int i = 1; i < cycle.size; i++) {
-            cycle.actualTradeQuantities[i] = cycle.actualTradeQuantities[i-1] * cycle.tradePrices[i-1] * Main.TRANSACTION_FEE_RATIO;
+            cycle.actualTradeQuantitiesForEachCurrency[i] = cycle.actualTradeQuantitiesForEachCurrency[i-1] * cycle.tradePrices[i-1] * Main.TRANSACTION_FEE_RATIO;
         }
     }
 
-    private static Object[] sortCyclesByMultiplier(List<Cycle> cycleObjects3to4Size) {
-        Object[] cycleObjectsArray = cycleObjects3to4Size.toArray();
-        Arrays.sort(cycleObjectsArray, Collections.reverseOrder());
-        return cycleObjectsArray;
+    private static Cycle[] sortCyclesByMultiplier(List<Cycle> cycleObjects3to4Size) {
+        Object[] objectsArray = cycleObjects3to4Size.toArray();
+        Arrays.sort(objectsArray, Collections.reverseOrder());
+
+        // Convert to Cycle[]
+        return Arrays.copyOf(objectsArray, objectsArray.length, Cycle[].class);
     }
 
     private static void computeCycleMultiplier(Cycle cycle) {
@@ -83,11 +88,16 @@ public class GraphProcessing {
             String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
             cycle.tradePrices[i] = graph.getEdge(sourceNode, targetNode).getPrice();
-            cycle.tradeQuantitiesInStartCurrency[i] = graph.getEdge(sourceNode, targetNode).getAmount();
+            cycle.tradeQuantities[i] = graph.getEdge(sourceNode, targetNode).getAmount();
         }
     }
 
     private static void convertQuantitiesToStartingCurrency(Cycle cycle) {
+        // Move each currency to the right until we reach the start currency
+
+        // Copy array
+        cycle.tradeQuantitiesInStartCurrency = cycle.tradeQuantities;
+
         for (int i = 1; i < cycle.size; i++) {
             for (int j = 1; j <= i; j++) {
                 cycle.tradeQuantitiesInStartCurrency[j] = cycle.tradeQuantitiesInStartCurrency[j] * cycle.tradePrices[i];

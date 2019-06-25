@@ -13,9 +13,11 @@ public class Main {
 
         SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
 
-        Object[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
+        Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
 
         writeCyclesToFile(sortedCyclesByMultiplier);
+
+        BinanceAPICaller.convertCurrency("BTC", "ETH", "0.00000001");
     }
 
     private SimpleDirectedWeightedGraph<String, CustomEdge> createGraph() {
@@ -27,13 +29,23 @@ public class Main {
         return graph;
     }
 
-    private void writeCyclesToFile(Object[] sortedCyclesByMultiplier) {
+    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier) {
         try {
             FileWriter fileWriter = new FileWriter("cycles.txt");
 
             for (int i = 0; i < HOW_MANY_CYCLES; i++) {
-                Cycle cycle = (Cycle) sortedCyclesByMultiplier[i];
+                Cycle cycle = sortedCyclesByMultiplier[i];
+
+                // Write cycle to file
                 fileWriter.write(cycle.toString() + "\n");
+
+
+                // Write cycle data after cycle
+                for (int j = 0; j < cycle.size; j++) {
+                    fileWriter.write(cycle.cycleString.get(j) + "-> Amount to trade : " + cycle.actualTradeQuantitiesForEachCurrency[j] + " with rate: " + cycle.tradePrices[j] + "\n");
+                }
+
+                fileWriter.write("\n\n\n");
             }
 
             fileWriter.close();

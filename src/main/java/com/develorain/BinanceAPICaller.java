@@ -16,23 +16,42 @@ public class BinanceAPICaller {
     public static void initialize() {
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("My2zlMkv4yorboQMABkUSqcNosJEqVZNi6JzPEvQovzbiVusGrf0ZkLF9rHkQAe7", "nUecuN1O33QAYXLdY76s12BME3fLafphBhj0kUl67Cs3seYxp8xzJ8JqVD7mYwJr");
         client = factory.newRestClient();
-
-        //NewOrder test = NewOrder.marketBuy("ETHBTC", "1000");
-        //System.out.println(test.toString());
-        //client.newOrderTest(test);
     }
 
-    public static void convertCurrency(String from, String to, String amountOriginal) {
+    public static boolean isABuyOrder(CustomEdge edge) {
+        if (edge.baseAssetCode.equalsIgnoreCase(edge.sourceNode)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public static void convertCurrency(CustomEdge edge, String amountInOriginalCurrency) {
+        boolean buyFlag = isABuyOrder(edge);
+
         try {
-            NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketBuy("ETHBTC", amountOriginal).newOrderRespType(NewOrderResponseType.FULL));
-            System.out.println(newOrderResponse);
+            System.out.println("Convert: " + edge.sourceNode + "->" + edge.targetNode);
+            if (buyFlag) {
+                NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketBuy(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
+                System.out.println(newOrderResponse);
+            } else {
+                NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketSell(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
+                System.out.println(newOrderResponse);
+            }
         } catch (BinanceApiException e) {
             System.out.println("Transaction failed: Attempting to trade below minimum trade threshold");
         }
     }
 
-    public static void performCycle(Cycle cycle, double amountInOriginalCurrency) {
+    public static void performCycle(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+        for (int i = 0; i < cycle.size; i++) {
+            String sourceNode = cycle.cycleString.get(i);
+            String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
+            convertCurrency(graph.getEdge(sourceNode, targetNode), Double.toString(cycle.actualTradeQuantitiesForEachCurrency[i]));
+        }
+
+        System.out.println("Completed cycle");
     }
 
     public static void createGraphNodes(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
@@ -71,10 +90,10 @@ public class BinanceAPICaller {
 
             // Connect these currencies with their corresponding weights
             try {
-                CustomEdge baseToQuoteEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()));
+                CustomEdge baseToQuoteEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, baseAssetCode, quoteAssetCode);
                 graph.addEdge(baseAssetCode, quoteAssetCode, baseToQuoteEdge);
 
-                CustomEdge quoteToBaseEdge = new CustomEdge(1.0/Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()));
+                CustomEdge quoteToBaseEdge = new CustomEdge(1.0/Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, quoteAssetCode, baseAssetCode);
                 graph.addEdge(quoteAssetCode, baseAssetCode, quoteToBaseEdge);
             } catch (NullPointerException e) {
                 System.out.println("Problematic: " + symbol);

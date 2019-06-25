@@ -17,7 +17,8 @@ public class Main {
 
         writeCyclesToFile(sortedCyclesByMultiplier);
 
-        BinanceAPICaller.convertCurrency("BTC", "ETH", "0.00000001");
+        // Do the first cycle
+        BinanceAPICaller.performCycle(graph, sortedCyclesByMultiplier[0]);
     }
 
     private SimpleDirectedWeightedGraph<String, CustomEdge> createGraph() {

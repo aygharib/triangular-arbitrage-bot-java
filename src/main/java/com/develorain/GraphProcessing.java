@@ -15,8 +15,8 @@ public class GraphProcessing {
         List<Cycle> cycleObjects = getCycleObjects(graph);
 
         for (Cycle cycle: cycleObjects) {
-            if (cycle.size >= 3 && cycle.size <= 6) {
-                computeCycleAttributes(graph, cycle);
+            if (cycle.size >= 3 && cycle.size <= 4) {
+                initializeCycleAttributes(graph, cycle);
                 computeActualTradeQuantities(cycle);
 
                 if (isDesirableCycle(cycle)) {
@@ -45,7 +45,7 @@ public class GraphProcessing {
         return cycle.multiplier != Double.POSITIVE_INFINITY && cycle.multiplier != Double.NEGATIVE_INFINITY && cycle.multiplier >= 1.0 && !Double.isNaN(cycle.multiplier);
     }
 
-    private static void computeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+    private static void initializeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
         computeConversionPricesAndQuantities(graph, cycle);
         convertQuantitiesToStartingCurrency(cycle);
         computeCycleMultiplier(cycle);
@@ -59,7 +59,7 @@ public class GraphProcessing {
         }
 
         // Force it to be 0.24 BNB
-        maximumAmountToTradeInStartingCurrency = Math.min(0.24, maximumAmountToTradeInStartingCurrency);
+        maximumAmountToTradeInStartingCurrency = Math.min(0.8, maximumAmountToTradeInStartingCurrency);
 
         cycle.actualTradeQuantitiesForEachCurrency[0] = maximumAmountToTradeInStartingCurrency;
 

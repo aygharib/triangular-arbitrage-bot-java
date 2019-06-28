@@ -32,14 +32,15 @@ public class BinanceAPICaller {
         try {
             System.out.println("Convert: " + edge.sourceNode + "->" + edge.targetNode);
             if (buyFlag) {
-                NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketBuy(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
-                System.out.println(newOrderResponse);
+                //NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketBuy(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
+                //System.out.println(newOrderResponse);
             } else {
-                NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketSell(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
-                System.out.println(newOrderResponse);
+                //NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketSell(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
+                //System.out.println(newOrderResponse);
             }
         } catch (BinanceApiException e) {
             System.out.println("Transaction failed: Attempting to trade below minimum trade threshold");
+            e.printStackTrace();
         }
     }
 
@@ -91,9 +92,10 @@ public class BinanceAPICaller {
             // Connect these currencies with their corresponding weights
             try {
                 CustomEdge baseToQuoteEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, baseAssetCode, quoteAssetCode);
-                graph.addEdge(baseAssetCode, quoteAssetCode, baseToQuoteEdge);
-
                 CustomEdge quoteToBaseEdge = new CustomEdge(1.0/Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, quoteAssetCode, baseAssetCode);
+
+
+                graph.addEdge(baseAssetCode, quoteAssetCode, baseToQuoteEdge);
                 graph.addEdge(quoteAssetCode, baseAssetCode, quoteToBaseEdge);
             } catch (NullPointerException e) {
                 System.out.println("Problematic: " + symbol);

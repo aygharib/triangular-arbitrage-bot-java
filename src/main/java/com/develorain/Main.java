@@ -15,7 +15,13 @@ public class Main {
 
         Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
 
-        writeCyclesToFile(sortedCyclesByMultiplier);
+        System.out.println(sortedCyclesByMultiplier[0]);
+
+        for (int j = 0; j < sortedCyclesByMultiplier[0].size; j++) {
+            System.out.println(sortedCyclesByMultiplier[0].cycleString.get(j) + "-> Amount to trade : " + sortedCyclesByMultiplier[0].actualTradeQuantitiesForEachCurrency[j] + " with rate: " + sortedCyclesByMultiplier[0].tradePrices[j] + "\n");
+        }
+
+        writeCyclesToFile(sortedCyclesByMultiplier, 0);
 
         // Do the first cycle
         BinanceAPICaller.performCycle(graph, sortedCyclesByMultiplier[0]);
@@ -30,9 +36,9 @@ public class Main {
         return graph;
     }
 
-    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier) {
+    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier, int cancer) {
         try {
-            FileWriter fileWriter = new FileWriter("cycles.txt");
+            FileWriter fileWriter = new FileWriter("cycles" + cancer + ".txt");
 
             for (int i = 0; i < HOW_MANY_CYCLES; i++) {
                 Cycle cycle = sortedCyclesByMultiplier[i];

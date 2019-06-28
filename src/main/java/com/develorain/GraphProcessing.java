@@ -83,13 +83,27 @@ public class GraphProcessing {
     }
 
     private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+        System.out.println("Start cycle at: " + cycle.cycleString.get(0));
         for (int i = 0; i < cycle.size; i++) {
             String sourceNode = cycle.cycleString.get(i);
             String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
-            cycle.tradePrices[i] = graph.getEdge(sourceNode, targetNode).getPrice();
-            cycle.tradeQuantities[i] = graph.getEdge(sourceNode, targetNode).getAmount();
+            CustomEdge edge = graph.getEdge(sourceNode, targetNode);
+
+            if (BinanceAPICaller.isABuyOrder(edge)) {
+                cycle.tradePrices[i] = 1.0 / graph.getEdge(targetNode, sourceNode).getPrice();
+                cycle.tradeQuantities[i] = graph.getEdge(targetNode, sourceNode).getAmount();
+
+                System.out.println("Buy order: " + edge.symbol + " Price: " + cycle.tradePrices[i]);
+            } else {
+                cycle.tradePrices[i] = graph.getEdge(sourceNode, targetNode).getPrice();
+                cycle.tradeQuantities[i] = graph.getEdge(sourceNode, targetNode).getAmount();
+
+                System.out.println("Sell order: " + edge.symbol + " Price: " + cycle.tradePrices[i]);
+            }
         }
+
+        System.out.println("SEPARATOR@@@@@@@@@@@@@@@@@@@@@@@@@@");
     }
 
     private static void convertQuantitiesToStartingCurrency(Cycle cycle) {

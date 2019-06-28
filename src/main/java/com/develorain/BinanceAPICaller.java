@@ -19,10 +19,11 @@ public class BinanceAPICaller {
     }
 
     public static boolean isABuyOrder(CustomEdge edge) {
+        // We are leaving the source node, which means we are selling the source node. If the base is equal to our source, that means we are selling the base, and therefore it is a sell order.
         if (edge.baseAssetCode.equalsIgnoreCase(edge.sourceNode)) {
-            return true;
-        } else {
             return false;
+        } else {
+            return true;
         }
     }
 
@@ -91,12 +92,11 @@ public class BinanceAPICaller {
 
             // Connect these currencies with their corresponding weights
             try {
-                CustomEdge baseToQuoteEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, baseAssetCode, quoteAssetCode);
-                CustomEdge quoteToBaseEdge = new CustomEdge(1.0/Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, quoteAssetCode, baseAssetCode);
+                CustomEdge sellEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, baseAssetCode, quoteAssetCode);
+                CustomEdge buyEdge = new CustomEdge(Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, quoteAssetCode, baseAssetCode);
 
-
-                graph.addEdge(baseAssetCode, quoteAssetCode, baseToQuoteEdge);
-                graph.addEdge(quoteAssetCode, baseAssetCode, quoteToBaseEdge);
+                graph.addEdge(baseAssetCode, quoteAssetCode, sellEdge);
+                graph.addEdge(quoteAssetCode, baseAssetCode, buyEdge);
             } catch (NullPointerException e) {
                 System.out.println("Problematic: " + symbol);
             }

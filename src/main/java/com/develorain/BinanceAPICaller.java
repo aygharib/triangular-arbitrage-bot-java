@@ -2,9 +2,6 @@ package com.develorain;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
-import com.binance.api.client.domain.account.NewOrder;
-import com.binance.api.client.domain.account.NewOrderResponse;
-import com.binance.api.client.domain.account.NewOrderResponseType;
 import com.binance.api.client.domain.general.Asset;
 import com.binance.api.client.domain.market.BookTicker;
 import com.binance.api.client.exception.BinanceApiException;
@@ -18,17 +15,16 @@ public class BinanceAPICaller {
         client = factory.newRestClient();
     }
 
-    public static boolean isABuyOrder(CustomEdge edge) {
-        // We are leaving the source node, which means we are selling the source node. If the base is equal to our source, that means we are selling the base, and therefore it is a sell order.
+    public static boolean isMeSellingBaseCurrencyOrder(CustomEdge edge) {
         if (edge.baseAssetCode.equalsIgnoreCase(edge.sourceNode)) {
-            return false;
-        } else {
             return true;
+        } else {
+            return false;
         }
     }
 
     public static void convertCurrency(CustomEdge edge, String amountInOriginalCurrency) {
-        boolean buyFlag = isABuyOrder(edge);
+        boolean buyFlag = isMeSellingBaseCurrencyOrder(edge);
 
         try {
             System.out.println("Convert: " + edge.sourceNode + "->" + edge.targetNode);
@@ -71,7 +67,18 @@ public class BinanceAPICaller {
         for (BookTicker bookTicker : client.getBookTickers()) {
             String symbol = bookTicker.getSymbol();
 
+            // REMOVE ANY SYMBOLS WITH LONGER THAN 6 LETTERS, AND ALSO REMOTE SYMBOLS THAT HAVE PRICE ZERO (AKA THEY DONT ACTUALLY EXIST, SUCH AS PAXETH)
             if (symbol.length() != 6) {
+                continue;
+            }
+
+            if (Double.parseDouble(bookTicker.getAskPrice()) == 0.0) {
+                System.out.println("Warning: The following symbol has an ask price of zero, so it is being removed: " + symbol);
+                continue;
+            }
+
+            if (Double.parseDouble(bookTicker.getBidPrice()) == 0.0) {
+                System.out.println("Warning: The following symbol has a bid of zero, so it is being removed: " + symbol);
                 continue;
             }
 
@@ -92,8 +99,8 @@ public class BinanceAPICaller {
 
             // Connect these currencies with their corresponding weights
             try {
-                CustomEdge sellEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, baseAssetCode, quoteAssetCode);
-                CustomEdge buyEdge = new CustomEdge(Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, quoteAssetCode, baseAssetCode);
+                CustomEdge sellEdge = new CustomEdge(Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, baseAssetCode, quoteAssetCode);
+                CustomEdge buyEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, quoteAssetCode, baseAssetCode);
 
                 graph.addEdge(baseAssetCode, quoteAssetCode, sellEdge);
                 graph.addEdge(quoteAssetCode, baseAssetCode, buyEdge);

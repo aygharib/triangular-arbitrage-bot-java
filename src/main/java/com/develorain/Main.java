@@ -17,14 +17,23 @@ public class Main {
 
         System.out.println(sortedCyclesByMultiplier[0]);
 
+        /*
         for (int j = 0; j < sortedCyclesByMultiplier[0].size; j++) {
             System.out.println(sortedCyclesByMultiplier[0].cycleString.get(j) + "-> Amount to trade : " + sortedCyclesByMultiplier[0].actualTradeQuantitiesForEachCurrency[j] + " with rate: " + sortedCyclesByMultiplier[0].tradePrices[j] + "\n");
         }
+        */
 
-        writeCyclesToFile(sortedCyclesByMultiplier, 0);
+        //writeCyclesToFile(sortedCyclesByMultiplier, 0);
 
         // Do the first cycle
-        BinanceAPICaller.performCycle(graph, sortedCyclesByMultiplier[0]);
+        //BinanceAPICaller.performCycle(graph, sortedCyclesByMultiplier[0]);
+
+        /*
+        System.out.print("Sell base: ");
+        System.out.println(graph.getEdge("TRX", "XRP").getPrice());
+        System.out.print("Buy base: ");
+        System.out.println(graph.getEdge("XRP", "TRX").getPrice());
+         */
     }
 
     private SimpleDirectedWeightedGraph<String, CustomEdge> createGraph() {

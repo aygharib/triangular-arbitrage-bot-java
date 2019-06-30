@@ -15,8 +15,11 @@ public class GraphProcessing {
         List<Cycle> cycleObjects = getCycleObjects(graph);
 
         for (Cycle cycle: cycleObjects) {
-            if (cycle.size >= 3 && cycle.size <= 4) {
+            if (cycle.size >= 3 && cycle.size <= 6) {
                 initializeCycleAttributes(graph, cycle);
+
+                // verified up to here
+
                 computeActualTradeQuantities(cycle);
 
                 if (isDesirableCycle(cycle)) {
@@ -42,13 +45,13 @@ public class GraphProcessing {
     }
 
     private static boolean isDesirableCycle(Cycle cycle) {
-        return cycle.multiplier != Double.POSITIVE_INFINITY && cycle.multiplier != Double.NEGATIVE_INFINITY && cycle.multiplier >= 1.0 && !Double.isNaN(cycle.multiplier);
+        return cycle.multiplier != Double.POSITIVE_INFINITY && cycle.multiplier != Double.NEGATIVE_INFINITY && cycle.multiplier >= 0.99 && !Double.isNaN(cycle.multiplier);
     }
 
     private static void initializeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
         computeConversionPricesAndQuantities(graph, cycle);
         convertQuantitiesToStartingCurrency(cycle);
-        computeCycleMultiplier(cycle);
+        computeCycleMultiplier(cycle, graph);
     }
 
     private static void computeActualTradeQuantities(Cycle cycle) {
@@ -64,7 +67,7 @@ public class GraphProcessing {
         cycle.actualTradeQuantitiesForEachCurrency[0] = maximumAmountToTradeInStartingCurrency;
 
         for (int i = 1; i < cycle.size; i++) {
-            cycle.actualTradeQuantitiesForEachCurrency[i] = cycle.actualTradeQuantitiesForEachCurrency[i-1] * cycle.tradePrices[i-1] * Main.TRANSACTION_FEE_RATIO;
+            cycle.actualTradeQuantitiesForEachCurrency[i] = cycle.actualTradeQuantitiesForEachCurrency[i-1] * cycle.tradeRates[i-1] * Main.TRANSACTION_FEE_RATIO;
         }
     }
 
@@ -76,46 +79,83 @@ public class GraphProcessing {
         return Arrays.copyOf(objectsArray, objectsArray.length, Cycle[].class);
     }
 
-    private static void computeCycleMultiplier(Cycle cycle) {
+    private static void computeCycleMultiplier(Cycle cycle, SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         for (int i = 0; i < cycle.size; i++) {
-            cycle.multiplier = cycle.multiplier * cycle.tradePrices[i] * Main.TRANSACTION_FEE_RATIO;
+            cycle.multiplier = cycle.multiplier * cycle.tradeRates[i] * Main.TRANSACTION_FEE_RATIO;
         }
-    }
 
-    private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
-        System.out.println("Start cycle at: " + cycle.cycleString.get(0));
+        // OUTPUT REMOVE THIS LATER
+
+
+        /*
+        if (cycle.multiplier >= 0.99) {
+            System.out.println(cycle.multiplier + ": " + cycle.cycleString);
+        }
+        */
+
+        //System.out.println("Multiplier: " + cycle.multiplier);
+        //System.out.println(cycle.cycleString);
         for (int i = 0; i < cycle.size; i++) {
+            // These two nodes are just traversing through the cycle, pair by pair, until you get to the beginning
             String sourceNode = cycle.cycleString.get(i);
             String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
-            CustomEdge edge = graph.getEdge(sourceNode, targetNode);
+            CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
-            if (BinanceAPICaller.isABuyOrder(edge)) {
-                cycle.tradePrices[i] = 1.0 / graph.getEdge(targetNode, sourceNode).getPrice();
-                cycle.tradeQuantities[i] = graph.getEdge(targetNode, sourceNode).getAmount();
+            //System.out.print(sourceNode + "---->" + targetNode + " : ");
 
-                System.out.println("Buy order: " + edge.symbol + " Price: " + cycle.tradePrices[i]);
+            if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
+                // IM SELLING THE BASE CURRENCY!!
+                //System.out.println("I'm selling base currency: " + sourceToTargetEdge.symbol + " Price: " + cycle.tradePrices[i] + " Amount: " + cycle.tradeQuantities[i] + " Rate: " + cycle.tradeRates[i]);
             } else {
-                cycle.tradePrices[i] = graph.getEdge(sourceNode, targetNode).getPrice();
-                cycle.tradeQuantities[i] = graph.getEdge(sourceNode, targetNode).getAmount();
-
-                System.out.println("Sell order: " + edge.symbol + " Price: " + cycle.tradePrices[i]);
+                // IM BUYING THE BASE CURRENCY!!
+                //System.out.println("I'm buying base currency: " + sourceToTargetEdge.symbol + " Price: " + cycle.tradePrices[i] + " Amount: " + cycle.tradeQuantities[i] + " Rate: " + cycle.tradeRates[i]);
             }
         }
 
-        System.out.println("SEPARATOR@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        //System.out.println("\n");
+    }
+
+    private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+        //System.out.println(cycle.cycleString);
+        for (int i = 0; i < cycle.size; i++) {
+            // These two nodes are just traversing through the cycle, pair by pair, until you get to the beginning
+            String sourceNode = cycle.cycleString.get(i);
+            String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
+
+            CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
+
+            //System.out.print(sourceNode + "---->" + targetNode + " : ");
+
+            cycle.tradePrices[i] = graph.getEdge(sourceNode, targetNode).getPrice();
+            cycle.tradeQuantities[i] = graph.getEdge(sourceNode, targetNode).getAmount();
+
+            if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
+                // IM SELLING THE BASE CURRENCY!!
+                cycle.tradeRates[i] = cycle.tradePrices[i];
+                //System.out.println("I'm selling base currency: " + sourceToTargetEdge.symbol + " Price: " + cycle.tradePrices[i] + " Amount: " + cycle.tradeQuantities[i] + " Rate: " + cycle.tradeRates[i]);
+            } else {
+                // IM BUYING THE BASE CURRENCY!!
+                cycle.tradeRates[i] = 1.0 / cycle.tradePrices[i];
+                //System.out.println("I'm buying base currency: " + sourceToTargetEdge.symbol + " Price: " + cycle.tradePrices[i] + " Amount: " + cycle.tradeQuantities[i] + " Rate: " + cycle.tradeRates[i]);
+            }
+        }
+
+        //System.out.println("\n");
     }
 
     private static void convertQuantitiesToStartingCurrency(Cycle cycle) {
         // Move each currency to the right until we reach the start currency
 
-        // Copy array
+        // Copy array, not values are not correct yet!!
         cycle.tradeQuantitiesInStartCurrency = cycle.tradeQuantities;
 
         for (int i = 1; i < cycle.size; i++) {
             for (int j = 1; j <= i; j++) {
-                cycle.tradeQuantitiesInStartCurrency[j] = cycle.tradeQuantitiesInStartCurrency[j] * cycle.tradePrices[i];
+                cycle.tradeQuantitiesInStartCurrency[j] = cycle.tradeQuantitiesInStartCurrency[j] * cycle.tradeRates[i];
             }
         }
+
+        // Now the values in the array are correct
     }
 }

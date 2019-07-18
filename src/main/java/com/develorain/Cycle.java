@@ -3,20 +3,21 @@ package com.develorain;
 import java.util.List;
 
 public class Cycle implements Comparable {
-    public final List<String> cycleString;
-    public double multiplier;
-    public double[] tradePrices;
+    public final List<String> cycleString; // List of string currencies
+    public double multiplier;              // Worst-case multiplier for the cycle
+    public double[] tradePrices;           // Worst-case price (can be either ask or bid)
 
-    // this is basically tradePrices, but does 1.0 / tradePrices for buying original currencies, so that we can do the math easier, but still have the original tradePrices in memory
-    // basically, when using the top half, you gotta 1.0/over top half as you're going from other currency back to main currency
+    // this is basically tradePrices, but does 1.0 / tradePrices for buying base currencies, so that we can do the math easier, but still have the base tradePrices in memory
+    // basically, when using the top half, you gotta 1.0 / top-half as you're going from other currency back to base currency
     public double[] tradeRates;
 
-    public double[] tradeQuantities;
-    public double[] tradeQuantitiesInStartCurrency;
+    public double[] tradeQuantitiesInStartCurrency; // this is temporary, should NOT be an attribute, remove this!!
+
+    public double[] tradeQuantities;                // this is temporary, the final value ends up in actualTradeQuantitiesForEachCurrency
     public double[] actualTradeQuantitiesForEachCurrency;
     public int size;
 
-    Cycle(List<String> cycleString) {
+    public Cycle(List<String> cycleString) {
         this.cycleString = cycleString;
         this.multiplier = 1.0;
         this.size = cycleString.size();
@@ -30,7 +31,7 @@ public class Cycle implements Comparable {
 
     @Override
     public String toString() {
-        return cycleString + " with multiplier " + Tools.formatPrice(multiplier);
+        return "<~~ " + cycleString + " with multiplier " + Tools.formatPrice(multiplier) + " ~~>";
     }
 
     @Override

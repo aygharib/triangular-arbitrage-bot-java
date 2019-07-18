@@ -31,13 +31,15 @@ public class Main {
         try {
             FileWriter fileWriter = new FileWriter("cycles.txt");
 
+            fileWriter.write("\n\n\n\n\n");
+
             for (int i = 0; i < HOW_MANY_CYCLES; i++) {
                 Cycle cycle = sortedCyclesByMultiplier[i];
 
                 // Write cycle to file
                 fileWriter.write(cycle.toString() + "\n");
 
-                fileWriter.write("Start cycle with " + cycle.actualTradeQuantitiesForEachCurrency[0] + " " + cycle.cycleString.get(0) + "\n");
+                fileWriter.write("Start cycle with " + Tools.formatAmount(cycle.actualTradeQuantitiesForEachCurrency[0]) + " " + cycle.cycleString.get(0) + "\n\n");
 
                 // Write cycle data after cycle
                 for (int j = 0; j < cycle.size; j++) {
@@ -47,9 +49,11 @@ public class Main {
                     CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
                     if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
-                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n");
+                        fileWriter.write("Using bottom-half price\n");
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n\n");
                     } else {
-                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price <= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n");
+                        fileWriter.write("Using top-half price\n");
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price <= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n\n");
                     }
                 }
 

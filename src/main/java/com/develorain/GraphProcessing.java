@@ -12,9 +12,9 @@ public class GraphProcessing {
     public static Cycle[] getSortedCyclesByMultiplier(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         List<Cycle> cycleObjects3to4Size = new ArrayList<>();
 
-        List<Cycle> cycleObjects = getCycleObjects(graph);
+        List<Cycle> cycles = getCycles(graph);
 
-        for (Cycle cycle: cycleObjects) {
+        for (Cycle cycle: cycles) {
             if (cycle.size >= 3 && cycle.size <= 6) {
                 initializeCycleAttributes(graph, cycle);
                 computeActualTradeQuantities(cycle);
@@ -28,7 +28,7 @@ public class GraphProcessing {
         return sortCyclesByMultiplier(cycleObjects3to4Size);
     }
 
-    private static List<Cycle> getCycleObjects(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+    private static List<Cycle> getCycles(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         JohnsonSimpleCycles<String, CustomEdge> cycleAlgorithm = new JohnsonSimpleCycles<>(graph);
         List<List<String>> cycleStrings = cycleAlgorithm.findSimpleCycles();
 
@@ -87,10 +87,8 @@ public class GraphProcessing {
 
             CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
-            //System.out.print(sourceNode + "---->" + targetNode + " : ");
-
-            cycle.tradePrices[i] = graph.getEdge(sourceNode, targetNode).getPrice();
-            cycle.tradeQuantities[i] = graph.getEdge(sourceNode, targetNode).getAmount();
+            cycle.tradePrices[i] = sourceToTargetEdge.getPrice();
+            cycle.tradeQuantities[i] = sourceToTargetEdge.getAmount();
 
             if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
                 // IM SELLING THE BASE CURRENCY!!

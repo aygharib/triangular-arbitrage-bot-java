@@ -6,7 +6,7 @@ import java.io.FileWriter;
 
 public class Main {
     public static final Double TRANSACTION_FEE_RATIO = 1 - 0.000750;
-    public static final int HOW_MANY_CYCLES = 100;
+    public static final int HOW_MANY_CYCLES = 10;
 
     private Main() {
         BinanceAPICaller.initialize();
@@ -15,25 +15,7 @@ public class Main {
 
         Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
 
-        System.out.println(sortedCyclesByMultiplier[0]);
-
-        /*
-        for (int j = 0; j < sortedCyclesByMultiplier[0].size; j++) {
-            System.out.println(sortedCyclesByMultiplier[0].cycleString.get(j) + "-> Amount to trade : " + sortedCyclesByMultiplier[0].actualTradeQuantitiesForEachCurrency[j] + " with rate: " + sortedCyclesByMultiplier[0].tradePrices[j] + "\n");
-        }
-        */
-
-        //writeCyclesToFile(sortedCyclesByMultiplier, 0);
-
-        // Do the first cycle
-        //BinanceAPICaller.performCycle(graph, sortedCyclesByMultiplier[0]);
-
-        /*
-        System.out.print("Sell base: ");
-        System.out.println(graph.getEdge("TRX", "XRP").getPrice());
-        System.out.print("Buy base: ");
-        System.out.println(graph.getEdge("XRP", "TRX").getPrice());
-         */
+        writeCyclesToFile(sortedCyclesByMultiplier, graph);
     }
 
     private SimpleDirectedWeightedGraph<String, CustomEdge> createGraph() {
@@ -45,9 +27,9 @@ public class Main {
         return graph;
     }
 
-    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier, int cancer) {
+    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier, SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         try {
-            FileWriter fileWriter = new FileWriter("cycles" + cancer + ".txt");
+            FileWriter fileWriter = new FileWriter("cycles.txt");
 
             for (int i = 0; i < HOW_MANY_CYCLES; i++) {
                 Cycle cycle = sortedCyclesByMultiplier[i];
@@ -55,10 +37,20 @@ public class Main {
                 // Write cycle to file
                 fileWriter.write(cycle.toString() + "\n");
 
+                fileWriter.write("Start cycle with " + cycle.actualTradeQuantitiesForEachCurrency[0] + " " + cycle.cycleString.get(0) + "\n");
 
                 // Write cycle data after cycle
                 for (int j = 0; j < cycle.size; j++) {
-                    fileWriter.write(cycle.cycleString.get(j) + "-> Amount to trade : " + cycle.actualTradeQuantitiesForEachCurrency[j] + " with rate: " + cycle.tradePrices[j] + "\n");
+                    String sourceNode = cycle.cycleString.get(j);
+                    String targetNode = cycle.cycleString.get((j + 1) % cycle.size);
+
+                    CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
+
+                    if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n");
+                    } else {
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price <= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n");
+                    }
                 }
 
                 fileWriter.write("\n\n\n");

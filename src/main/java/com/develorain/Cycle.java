@@ -30,7 +30,7 @@ public class Cycle implements Comparable {
 
     @Override
     public String toString() {
-        return cycleString + ", " + multiplier;
+        return cycleString + " with multiplier " + Tools.formatPrice(multiplier);
     }
 
     @Override

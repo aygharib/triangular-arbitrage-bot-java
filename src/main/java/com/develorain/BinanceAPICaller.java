@@ -65,7 +65,11 @@ public class BinanceAPICaller {
 
     public static void createGraphEdges(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         for (BookTicker bookTicker : client.getBookTickers()) {
-            Symbol symbol = new Symbol(bookTicker.getSymbol());
+            Symbol symbol = new Symbol(bookTicker.getSymbol(),
+                    Double.parseDouble(bookTicker.getAskPrice()),
+                    Double.parseDouble(bookTicker.getBidPrice()),
+                    Double.parseDouble(bookTicker.getAskQty()),
+                    Double.parseDouble(bookTicker.getBidQty()));
 
             // REMOVE ANY SYMBOLS WITH LONGER THAN 6 LETTERS
             if (!symbol.temporarilyParsable) {
@@ -93,8 +97,8 @@ public class BinanceAPICaller {
                 String buySourceNode = symbol.quoteAsset;
                 String buyTargetNode = symbol.baseAsset;
 
-                CustomEdge sellEdge = new CustomEdge(Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, sellSourceNode, sellTargetNode);
-                CustomEdge buyEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, buySourceNode, buyTargetNode);
+                CustomEdge sellEdge = new CustomEdge(symbol, sellSourceNode, sellTargetNode);
+                CustomEdge buyEdge = new CustomEdge(symbol, buySourceNode, buyTargetNode);
 
                 graph.addEdge(sellSourceNode, sellTargetNode, sellEdge);
                 graph.addEdge(buySourceNode, buyTargetNode, buyEdge);

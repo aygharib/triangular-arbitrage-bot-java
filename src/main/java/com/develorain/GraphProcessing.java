@@ -87,8 +87,8 @@ public class GraphProcessing {
 
             CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
-            cycle.tradePrices[i] = sourceToTargetEdge.getPrice();
-            cycle.tradeQuantities[i] = sourceToTargetEdge.getAmount();
+            cycle.tradePrices[i] = sourceToTargetEdge.sameDirectionAsSymbol ? sourceToTargetEdge.symbol.bidPrice : sourceToTargetEdge.symbol.askPrice;
+            cycle.tradeQuantities[i] = sourceToTargetEdge.sameDirectionAsSymbol ? sourceToTargetEdge.symbol.bidQuantity : sourceToTargetEdge.symbol.askQuantity;
 
             if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
                 // IM SELLING THE BASE CURRENCY!!

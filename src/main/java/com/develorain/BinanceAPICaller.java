@@ -16,7 +16,7 @@ public class BinanceAPICaller {
     }
 
     public static boolean isMeSellingBaseCurrencyOrder(CustomEdge edge) {
-        if (edge.baseAssetCode.equalsIgnoreCase(edge.sourceNode)) {
+        if (edge.symbol.baseAsset.equalsIgnoreCase(edge.sourceNode)) {
             return true;
         } else {
             return false;
@@ -65,47 +65,41 @@ public class BinanceAPICaller {
 
     public static void createGraphEdges(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         for (BookTicker bookTicker : client.getBookTickers()) {
-            String symbol = bookTicker.getSymbol();
+            Symbol symbol = new Symbol(bookTicker.getSymbol());
 
-            // REMOVE ANY SYMBOLS WITH LONGER THAN 6 LETTERS, AND ALSO REMOTE SYMBOLS THAT HAVE PRICE ZERO (AKA THEY DONT ACTUALLY EXIST, SUCH AS PAXETH)
-            if (symbol.length() != 6) {
+            // REMOVE ANY SYMBOLS WITH LONGER THAN 6 LETTERS
+            if (!symbol.temporarilyParsable) {
                 continue;
             }
 
-            if (Double.parseDouble(bookTicker.getAskPrice()) == 0.0) {
-                System.out.println("Warning: The following symbol has an ask price of zero, so it is being removed: " + symbol);
+            // REMOVE ANY SYMBOLS THAT HAVE PRICE ZERO (AKA THEY DONT ACTUALLY EXIST, SUCH AS PAXETH)
+            if (Double.parseDouble(bookTicker.getAskPrice()) == 0.0 || Double.parseDouble(bookTicker.getBidPrice()) == 0.0) {
+                System.out.println("Warning: The following symbol has an ask or bid price of zero, so it is being removed: " + symbol.symbolString);
                 continue;
             }
 
-            if (Double.parseDouble(bookTicker.getBidPrice()) == 0.0) {
-                System.out.println("Warning: The following symbol has a bid of zero, so it is being removed: " + symbol);
-                continue;
-            }
-
-            // Get asset codes for base and quote
-            // REPLACE THIS WITH REGEX
-            String baseAssetCode = symbol.substring(0, 3);
-            String quoteAssetCode = symbol.substring(3, 6);
-
-            if (!graph.containsVertex(baseAssetCode)) {
-                System.out.println("Warning: Attempting to create edge with non-existent node: " + baseAssetCode);
-                continue;
-            }
-
-            if (!graph.containsVertex(quoteAssetCode)) {
-                System.out.println("Warning: Attempting to create edge with non-existent node: " + quoteAssetCode);
+            if (!graph.containsVertex(symbol.baseAsset) || !graph.containsVertex(symbol.quoteAsset)) {
+                System.out.println("Warning: Attempting to create edge with non-existent node: " + symbol.symbolString);
                 continue;
             }
 
             // Connect these currencies with their corresponding weights
             try {
-                CustomEdge sellEdge = new CustomEdge(Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, baseAssetCode, quoteAssetCode);
-                CustomEdge buyEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, quoteAssetCode, baseAssetCode);
+                // Sell edge is in the same direction as symbolString
+                String sellSourceNode = symbol.baseAsset;
+                String sellTargetNode = symbol.quoteAsset;
 
-                graph.addEdge(baseAssetCode, quoteAssetCode, sellEdge);
-                graph.addEdge(quoteAssetCode, baseAssetCode, buyEdge);
+                // Buy edge is in the opposite direction as symbolString
+                String buySourceNode = symbol.quoteAsset;
+                String buyTargetNode = symbol.baseAsset;
+
+                CustomEdge sellEdge = new CustomEdge(Double.parseDouble(bookTicker.getBidPrice()), Double.parseDouble(bookTicker.getBidQty()), symbol, sellSourceNode, sellTargetNode);
+                CustomEdge buyEdge = new CustomEdge(Double.parseDouble(bookTicker.getAskPrice()), Double.parseDouble(bookTicker.getAskQty()), symbol, buySourceNode, buyTargetNode);
+
+                graph.addEdge(sellSourceNode, sellTargetNode, sellEdge);
+                graph.addEdge(buySourceNode, buyTargetNode, buyEdge);
             } catch (NullPointerException e) {
-                System.out.println("Problematic: " + symbol);
+                System.out.println("Problematic symbol: " + symbol.symbolString);
             }
         }
     }

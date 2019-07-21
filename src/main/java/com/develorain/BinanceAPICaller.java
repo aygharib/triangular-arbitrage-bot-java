@@ -34,12 +34,14 @@ public class BinanceAPICaller {
     }
 
     public static void performCycle(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+        /*
         for (int i = 0; i < cycle.size; i++) {
             String sourceNode = cycle.cycleString.get(i);
             String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
-            convertCurrency(graph.getEdge(sourceNode, targetNode), Double.toString(cycle.actualTradeQuantitiesForEachCurrency[i]));
+            convertCurrency(graph.getEdge(sourceNode, targetNode), Double.toString(cycle.tradeQuantitiesPerCurrency[i]));
         }
+        */
 
         System.out.println("Completed cycle");
     }

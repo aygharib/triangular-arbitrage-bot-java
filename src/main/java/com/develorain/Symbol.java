@@ -11,6 +11,8 @@ public class Symbol {
     public double askQuantity;
     public double bidQuantity;
 
+    public double tradeQuantity;
+
     public boolean temporarilyParsable;
 
     public Symbol(String symbolString, double askPrice, double bidPrice, double askQuantity, double bidQuantity) {

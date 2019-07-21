@@ -17,7 +17,6 @@ public class GraphProcessing {
         for (Cycle cycle: cycles) {
             if (cycle.size >= 3 && cycle.size <= 4) {
                 initializeCycleAttributes(graph, cycle);
-                computeActualTradeQuantities(cycle);
 
                 if (isDesirableCycle(cycle)) {
                     cycleObjects3to4Size.add(cycle);
@@ -46,25 +45,13 @@ public class GraphProcessing {
     }
 
     private static void initializeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
-        double[] tradeQuantities = new double[cycle.size];
+        double[] tradeQuantitiesFromAPI = new double[cycle.size];
+        double[] tradeQuantitiesInStartCurrency = tradeQuantitiesFromAPI;
 
-        computeConversionPricesAndQuantities(graph, cycle, tradeQuantities);
-        convertQuantitiesToStartingCurrency(cycle, tradeQuantities);
+        computeConversionPricesAndQuantities(graph, cycle, tradeQuantitiesFromAPI);
+        convertQuantitiesToStartingCurrency(cycle, tradeQuantitiesInStartCurrency);
         computeCycleMultiplier(cycle);
-    }
-
-    private static void computeActualTradeQuantities(Cycle cycle) {
-        double maximumAmountToTradeInStartingCurrency = Double.MAX_VALUE;
-
-        for (Double amount : cycle.tradeQuantitiesInStartCurrency) {
-            maximumAmountToTradeInStartingCurrency = Math.min(maximumAmountToTradeInStartingCurrency, amount);
-        }
-
-        cycle.actualTradeQuantitiesForEachCurrency[0] = maximumAmountToTradeInStartingCurrency;
-
-        for (int i = 1; i < cycle.size; i++) {
-            cycle.actualTradeQuantitiesForEachCurrency[i] = cycle.actualTradeQuantitiesForEachCurrency[i-1] * cycle.tradeRates[i-1] * Main.TRANSACTION_FEE_RATIO;
-        }
+        computeActualTradeQuantities(cycle, tradeQuantitiesInStartCurrency);
     }
 
     private static Cycle[] sortCyclesByMultiplier(List<Cycle> cycleObjects3to4Size) {
@@ -106,18 +93,28 @@ public class GraphProcessing {
         }
     }
 
-    private static void convertQuantitiesToStartingCurrency(Cycle cycle, double[] tradeQuantities) {
+    private static void convertQuantitiesToStartingCurrency(Cycle cycle, double[] tradeQuantitiesInStartCurrency) {
         // Move each currency to the right until we reach the start currency
-
-        // Copy array, not values are not correct yet!!
-        cycle.tradeQuantitiesInStartCurrency = tradeQuantities;
-
         for (int i = 1; i < cycle.size; i++) {
             for (int j = 1; j <= i; j++) {
-                cycle.tradeQuantitiesInStartCurrency[j] = cycle.tradeQuantitiesInStartCurrency[j] * cycle.tradeRates[i];
+                tradeQuantitiesInStartCurrency[j] = tradeQuantitiesInStartCurrency[j] * cycle.tradeRates[i];
             }
         }
 
         // Now the values in the array are correct
+    }
+
+    private static void computeActualTradeQuantities(Cycle cycle, double[] tradeQuantitiesInStartCurrency) {
+        double maximumAmountToTradeInStartingCurrency = Double.MAX_VALUE;
+
+        for (Double amount : tradeQuantitiesInStartCurrency) {
+            maximumAmountToTradeInStartingCurrency = Math.min(maximumAmountToTradeInStartingCurrency, amount);
+        }
+
+        cycle.symbols[0].tradeQuantity = maximumAmountToTradeInStartingCurrency;
+
+        for (int i = 1; i < cycle.size; i++) {
+            cycle.symbols[i].tradeQuantity = cycle.symbols[i-1].tradeQuantity * cycle.tradeRates[i-1] * Main.TRANSACTION_FEE_RATIO;
+        }
     }
 }

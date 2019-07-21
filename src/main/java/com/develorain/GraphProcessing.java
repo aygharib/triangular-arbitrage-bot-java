@@ -68,7 +68,7 @@ public class GraphProcessing {
         }
     }
 
-    private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle, double[] tradeQuantities) {
+    private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle, double[] tradeQuantitiesFromAPI) {
         for (int i = 0; i < cycle.size; i++) {
             // These two nodes are just traversing through the cycle, pair by pair, until you get to the beginning
             String sourceNode = cycle.cycleString.get(i);
@@ -78,17 +78,14 @@ public class GraphProcessing {
 
             cycle.edges[i] = traversingCycleEdge;
 
-            // This is temporary, probably not needed later
-            cycle.worstCaseTradePrices[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidPrice : traversingCycleEdge.symbol.askPrice;
-
-            tradeQuantities[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidQuantity : traversingCycleEdge.symbol.askQuantity;
+            tradeQuantitiesFromAPI[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidQuantity : traversingCycleEdge.symbol.askQuantity;
 
             if (BinanceAPICaller.isMeSellingBaseCurrency(traversingCycleEdge)) {
                 // I'm selling base currency
-                cycle.tradeRates[i] = cycle.worstCaseTradePrices[i];
+                cycle.tradeRates[i] = cycle.edges[i].askOrBidPrice();
             } else {
                 // I'm buying base currency
-                cycle.tradeRates[i] = 1.0 / cycle.worstCaseTradePrices[i];
+                cycle.tradeRates[i] = 1.0 / cycle.edges[i].askOrBidPrice();
             }
         }
     }

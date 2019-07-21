@@ -5,12 +5,10 @@ import java.util.List;
 public class Cycle implements Comparable {
     public final List<String> cycleString; // List of string currencies
     public double multiplier;              // Worst-case multiplier for the cycle
-    public double[] worstCaseTradePrices;  // Worst-case price (can be either ask or bid)
 
-    public CustomEdge[] edges; // Stores all the symbols that are contained in the cycle (to have access to ask and bid prices)
 
-    // this is basically worstCaseTradePrices, but does 1.0 / worstCaseTradePrices for buying base currencies, so that we can do the math easier, but still have the base worstCaseTradePrices in memory
-    // basically, when using the top half, you gotta 1.0 / top-half as you're going from other currency back to base currency
+    public CustomEdge[] edges; // Stores all the edges that are contained in the cycle (to have access to ask and bid prices)
+
     public double[] tradeRates;
 
     public int size;
@@ -21,7 +19,6 @@ public class Cycle implements Comparable {
         this.size = cycleString.size();
 
         this.edges = new CustomEdge[size];
-        this.worstCaseTradePrices = new double[cycleString.size()];
         this.tradeRates = new double[cycleString.size()];
     }
 

@@ -22,4 +22,8 @@ public class CustomEdge extends DefaultWeightedEdge {
             sameDirectionAsSymbol = false;
         }
     }
+
+    public double askOrBidPrice() {
+        return sameDirectionAsSymbol ? symbol.bidPrice : symbol.askPrice;
+    }
 }

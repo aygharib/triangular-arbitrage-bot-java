@@ -50,10 +50,10 @@ public class Main {
 
                     if (BinanceAPICaller.isMeSellingBaseCurrency(sourceToTargetEdge)) {
                         fileWriter.write("Using bottom-half price\n");
-                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.worstCaseTradePrices[j]) + " \n\n");
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.edges[j].askOrBidPrice()) + " \n\n");
                     } else {
                         fileWriter.write("Using top-half price\n");
-                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price <= " + Tools.formatPrice(cycle.worstCaseTradePrices[j]) + " \n\n");
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price <= " + Tools.formatPrice(cycle.edges[j].askOrBidPrice()) + " \n\n");
                     }
                 }
 

@@ -6,7 +6,7 @@ import java.io.FileWriter;
 
 public class Main {
     public static final Double TRANSACTION_FEE_RATIO = 1 - 0.000750;
-    public static final int HOW_MANY_CYCLES = 10;
+    public static final int HOW_MANY_CYCLES_TO_OUTPUT = 10;
 
     private Main() {
         BinanceAPICaller.initialize();
@@ -33,7 +33,7 @@ public class Main {
 
             fileWriter.write("\n\n\n\n\n");
 
-            for (int i = 0; i < HOW_MANY_CYCLES; i++) {
+            for (int i = 0; i < HOW_MANY_CYCLES_TO_OUTPUT; i++) {
                 Cycle cycle = sortedCyclesByMultiplier[i];
 
                 // Write cycle to file
@@ -50,10 +50,10 @@ public class Main {
 
                     if (BinanceAPICaller.isMeSellingBaseCurrency(sourceToTargetEdge)) {
                         fileWriter.write("Using bottom-half price\n");
-                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.edges[j].askOrBidPrice()) + " \n\n");
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Worst case price >= " + Tools.formatPrice(cycle.edges[j].worstCaseTradePrice()) + " \n\n");
                     } else {
                         fileWriter.write("Using top-half price\n");
-                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price <= " + Tools.formatPrice(cycle.edges[j].askOrBidPrice()) + " \n\n");
+                        fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Worst case price <= " + Tools.formatPrice(cycle.edges[j].worstCaseTradePrice()) + " \n\n");
                     }
                 }
 

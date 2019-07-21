@@ -7,7 +7,7 @@ public class CustomEdge extends DefaultWeightedEdge {
     public String sourceNode;
     public String targetNode;
 
-    public double tradeRate;
+    public double worstCaseTradeRate;
     public double tradeQuantity;
 
     public boolean sameDirectionAsSymbol;
@@ -17,14 +17,14 @@ public class CustomEdge extends DefaultWeightedEdge {
         this.sourceNode = sourceNode;
         this.targetNode = targetNode;
 
-        if (sourceNode.equalsIgnoreCase(symbol.baseAsset)) {
-            sameDirectionAsSymbol = true;
-        } else {
-            sameDirectionAsSymbol = false;
-        }
+        sameDirectionAsSymbol = sourceNode.equalsIgnoreCase(symbol.baseAsset);
     }
 
-    public double askOrBidPrice() {
+    public double worstCaseTradePrice() {
         return sameDirectionAsSymbol ? symbol.bidPrice : symbol.askPrice;
+    }
+
+    public double bestCaseTradePrice() {
+        return sameDirectionAsSymbol ? symbol.askPrice : symbol.bidPrice;
     }
 }

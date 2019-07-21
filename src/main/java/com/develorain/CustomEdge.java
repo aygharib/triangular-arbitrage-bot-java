@@ -7,6 +7,7 @@ public class CustomEdge extends DefaultWeightedEdge {
     public String sourceNode;
     public String targetNode;
 
+    public double tradeRate;
     public double tradeQuantity;
 
     public boolean sameDirectionAsSymbol;

@@ -64,7 +64,7 @@ public class GraphProcessing {
 
     private static void computeCycleMultiplier(Cycle cycle) {
         for (int i = 0; i < cycle.size; i++) {
-            cycle.multiplier = cycle.multiplier * cycle.tradeRates[i] * Main.TRANSACTION_FEE_RATIO;
+            cycle.multiplier = cycle.multiplier * cycle.edges[i].tradeRate * Main.TRANSACTION_FEE_RATIO;
         }
     }
 
@@ -82,10 +82,10 @@ public class GraphProcessing {
 
             if (BinanceAPICaller.isMeSellingBaseCurrency(traversingCycleEdge)) {
                 // I'm selling base currency
-                cycle.tradeRates[i] = cycle.edges[i].askOrBidPrice();
+                cycle.edges[i].tradeRate = cycle.edges[i].askOrBidPrice();
             } else {
                 // I'm buying base currency
-                cycle.tradeRates[i] = 1.0 / cycle.edges[i].askOrBidPrice();
+                cycle.edges[i].tradeRate = 1.0 / cycle.edges[i].askOrBidPrice();
             }
         }
     }
@@ -94,7 +94,7 @@ public class GraphProcessing {
         // Move each currency to the right until we reach the start currency
         for (int i = 1; i < cycle.size; i++) {
             for (int j = 1; j <= i; j++) {
-                tradeQuantitiesInStartCurrency[j] = tradeQuantitiesInStartCurrency[j] * cycle.tradeRates[i];
+                tradeQuantitiesInStartCurrency[j] = tradeQuantitiesInStartCurrency[j] * cycle.edges[i].tradeRate;
             }
         }
 
@@ -111,7 +111,7 @@ public class GraphProcessing {
         cycle.edges[0].tradeQuantity = maximumAmountToTradeInStartingCurrency;
 
         for (int i = 1; i < cycle.size; i++) {
-            cycle.edges[i].tradeQuantity = cycle.edges[i-1].tradeQuantity * cycle.tradeRates[i-1] * Main.TRANSACTION_FEE_RATIO;
+            cycle.edges[i].tradeQuantity = cycle.edges[i-1].tradeQuantity * cycle.edges[i-1].tradeRate * Main.TRANSACTION_FEE_RATIO;
         }
     }
 }

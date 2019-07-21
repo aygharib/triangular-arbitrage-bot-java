@@ -14,8 +14,6 @@ public class Cycle implements Comparable {
     public double[] tradeRates;
 
     public double[] tradeQuantitiesInStartCurrency; // this is temporary, should NOT be an attribute, remove this!!
-
-    public double[] tradeQuantities;                // this is temporary, the final value ends up in actualTradeQuantitiesForEachCurrency
     public double[] actualTradeQuantitiesForEachCurrency;
     public int size;
 
@@ -27,7 +25,7 @@ public class Cycle implements Comparable {
         this.symbols = new Symbol[size];
         this.worstCaseTradePrices = new double[cycleString.size()];
         this.tradeRates = new double[cycleString.size()];
-        this.tradeQuantities = new double[cycleString.size()];
+        
         this.tradeQuantitiesInStartCurrency = new double[cycleString.size()];
         this.actualTradeQuantitiesForEachCurrency = new double[cycleString.size()];
     }

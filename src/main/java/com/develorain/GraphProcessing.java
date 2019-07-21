@@ -46,8 +46,10 @@ public class GraphProcessing {
     }
 
     private static void initializeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
-        computeConversionPricesAndQuantities(graph, cycle);
-        convertQuantitiesToStartingCurrency(cycle);
+        double[] tradeQuantities = new double[cycle.size];
+
+        computeConversionPricesAndQuantities(graph, cycle, tradeQuantities);
+        convertQuantitiesToStartingCurrency(cycle, tradeQuantities);
         computeCycleMultiplier(cycle);
     }
 
@@ -79,7 +81,7 @@ public class GraphProcessing {
         }
     }
 
-    private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+    private static void computeConversionPricesAndQuantities(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle, double[] tradeQuantities) {
         for (int i = 0; i < cycle.size; i++) {
             // These two nodes are just traversing through the cycle, pair by pair, until you get to the beginning
             String sourceNode = cycle.cycleString.get(i);
@@ -91,7 +93,8 @@ public class GraphProcessing {
 
             // This is temporary, probably not needed later
             cycle.worstCaseTradePrices[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidPrice : traversingCycleEdge.symbol.askPrice;
-            cycle.tradeQuantities[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidQuantity : traversingCycleEdge.symbol.askQuantity;
+
+            tradeQuantities[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidQuantity : traversingCycleEdge.symbol.askQuantity;
 
             if (BinanceAPICaller.isMeSellingBaseCurrency(traversingCycleEdge)) {
                 // I'm selling base currency
@@ -103,11 +106,11 @@ public class GraphProcessing {
         }
     }
 
-    private static void convertQuantitiesToStartingCurrency(Cycle cycle) {
+    private static void convertQuantitiesToStartingCurrency(Cycle cycle, double[] tradeQuantities) {
         // Move each currency to the right until we reach the start currency
 
         // Copy array, not values are not correct yet!!
-        cycle.tradeQuantitiesInStartCurrency = cycle.tradeQuantities;
+        cycle.tradeQuantitiesInStartCurrency = tradeQuantities;
 
         for (int i = 1; i < cycle.size; i++) {
             for (int j = 1; j <= i; j++) {

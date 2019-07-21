@@ -40,7 +40,8 @@ public class GraphProcessing {
     }
 
     private static boolean isDesirableCycle(Cycle cycle) {
-        return cycle.worstCaseMultiplier != Double.POSITIVE_INFINITY && cycle.worstCaseMultiplier != Double.NEGATIVE_INFINITY && cycle.worstCaseMultiplier >= 0.99 && !Double.isNaN(cycle.worstCaseMultiplier);
+        return cycle.worstCaseMultiplier != Double.POSITIVE_INFINITY && cycle.worstCaseMultiplier != Double.NEGATIVE_INFINITY && cycle.worstCaseMultiplier >= 0.99 && !Double.isNaN(cycle.worstCaseMultiplier)
+                && cycle.averageCaseMultiplier != Double.POSITIVE_INFINITY && cycle.averageCaseMultiplier != Double.NEGATIVE_INFINITY && !Double.isNaN(cycle.averageCaseMultiplier);
     }
 
     private static void initializeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
@@ -64,6 +65,7 @@ public class GraphProcessing {
     private static void computeCycleMultiplier(Cycle cycle) {
         for (int i = 0; i < cycle.size; i++) {
             cycle.worstCaseMultiplier = cycle.worstCaseMultiplier * cycle.edges[i].worstCaseTradeRate * Main.TRANSACTION_FEE_RATIO;
+            cycle.averageCaseMultiplier = cycle.averageCaseMultiplier * cycle.edges[i].averageCaseTradeRate * Main.TRANSACTION_FEE_RATIO;
         }
     }
 
@@ -82,9 +84,11 @@ public class GraphProcessing {
             if (BinanceAPICaller.isMeSellingBaseCurrency(traversingCycleEdge)) {
                 // I'm selling base currency
                 cycle.edges[i].worstCaseTradeRate = cycle.edges[i].worstCaseTradePrice();
+                cycle.edges[i].averageCaseTradeRate = cycle.edges[i].averageCaseTradePrice();
             } else {
                 // I'm buying base currency
                 cycle.edges[i].worstCaseTradeRate = 1.0 / cycle.edges[i].worstCaseTradePrice();
+                cycle.edges[i].averageCaseTradeRate = 1.0 / cycle.edges[i].averageCaseTradePrice();
             }
         }
     }

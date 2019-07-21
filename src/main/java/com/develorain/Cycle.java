@@ -4,7 +4,8 @@ import java.util.List;
 
 public class Cycle implements Comparable {
     public final List<String> cycleString; // List of string currencies
-    public double worstCaseMultiplier;              // Worst-case worstCaseMultiplier for the cycle
+    public double worstCaseMultiplier;
+    public double averageCaseMultiplier;
     public int size;
 
     public CustomEdge[] edges; // Stores all the edges that are contained in the cycle (to have access to ask and bid prices)
@@ -12,6 +13,8 @@ public class Cycle implements Comparable {
     public Cycle(List<String> cycleString) {
         this.cycleString = cycleString;
         this.worstCaseMultiplier = 1.0;
+        this.averageCaseMultiplier = 1.0;
+
         this.size = cycleString.size();
 
         this.edges = new CustomEdge[size];
@@ -19,18 +22,18 @@ public class Cycle implements Comparable {
 
     @Override
     public String toString() {
-        return "<~~ " + cycleString + " with worstCaseMultiplier " + Tools.formatPrice(worstCaseMultiplier) + " ~~>";
+        return "<~~ " + cycleString + " Worst Case Multiplier: " + Tools.formatPrice(worstCaseMultiplier) + ", Average Case Multiplier: " + Tools.formatPrice(averageCaseMultiplier) + " ~~>";
     }
 
     @Override
     public int compareTo(Object o) {
         Cycle otherCycle = (Cycle) o;
 
-        if (worstCaseMultiplier > otherCycle.worstCaseMultiplier) {
+        if (averageCaseMultiplier > otherCycle.averageCaseMultiplier) {
             return 1;
         }
 
-        if (worstCaseMultiplier < otherCycle.worstCaseMultiplier) {
+        if (averageCaseMultiplier < otherCycle.averageCaseMultiplier) {
             return -1;
         }
 

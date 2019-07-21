@@ -39,7 +39,7 @@ public class Main {
                 // Write cycle to file
                 fileWriter.write(cycle.toString() + "\n");
 
-                fileWriter.write("Start cycle with " + Tools.formatAmount(cycle.symbols[0].tradeQuantity) + " " + cycle.cycleString.get(0) + "\n\n");
+                fileWriter.write("Start cycle with " + Tools.formatAmount(cycle.edges[0].tradeQuantity) + " " + cycle.cycleString.get(0) + "\n\n");
 
                 // Write cycle data after cycle
                 for (int j = 0; j < cycle.size; j++) {

@@ -76,7 +76,7 @@ public class GraphProcessing {
 
             CustomEdge traversingCycleEdge = graph.getEdge(sourceNode, targetNode);
 
-            cycle.symbols[i] = traversingCycleEdge.symbol;
+            cycle.edges[i] = traversingCycleEdge;
 
             // This is temporary, probably not needed later
             cycle.worstCaseTradePrices[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidPrice : traversingCycleEdge.symbol.askPrice;
@@ -111,10 +111,10 @@ public class GraphProcessing {
             maximumAmountToTradeInStartingCurrency = Math.min(maximumAmountToTradeInStartingCurrency, amount);
         }
 
-        cycle.symbols[0].tradeQuantity = maximumAmountToTradeInStartingCurrency;
+        cycle.edges[0].tradeQuantity = maximumAmountToTradeInStartingCurrency;
 
         for (int i = 1; i < cycle.size; i++) {
-            cycle.symbols[i].tradeQuantity = cycle.symbols[i-1].tradeQuantity * cycle.tradeRates[i-1] * Main.TRANSACTION_FEE_RATIO;
+            cycle.edges[i].tradeQuantity = cycle.edges[i-1].tradeQuantity * cycle.tradeRates[i-1] * Main.TRANSACTION_FEE_RATIO;
         }
     }
 }

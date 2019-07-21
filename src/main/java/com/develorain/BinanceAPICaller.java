@@ -15,16 +15,8 @@ public class BinanceAPICaller {
         client = factory.newRestClient();
     }
 
-    public static boolean isMeSellingBaseCurrencyOrder(CustomEdge edge) {
-        if (edge.symbol.baseAsset.equalsIgnoreCase(edge.sourceNode)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     public static void convertCurrency(CustomEdge edge, String amountInOriginalCurrency) {
-        boolean buyFlag = isMeSellingBaseCurrencyOrder(edge);
+        boolean buyFlag = isMeSellingBaseCurrency(edge);
 
         try {
             System.out.println("Convert: " + edge.sourceNode + "->" + edge.targetNode);
@@ -71,12 +63,12 @@ public class BinanceAPICaller {
                     Double.parseDouble(bookTicker.getAskQty()),
                     Double.parseDouble(bookTicker.getBidQty()));
 
-            // REMOVE ANY SYMBOLS WITH LONGER THAN 6 LETTERS
+            // Do not include symbols that are not 6 letters long
             if (!symbol.temporarilyParsable) {
                 continue;
             }
 
-            // REMOVE ANY SYMBOLS THAT HAVE PRICE ZERO (AKA THEY DONT ACTUALLY EXIST, SUCH AS PAXETH)
+            // Do not include symbols with a price of zero (aka these symbols don't actually exist, such as PAXETH)
             if (Double.parseDouble(bookTicker.getAskPrice()) == 0.0 || Double.parseDouble(bookTicker.getBidPrice()) == 0.0) {
                 System.out.println("Warning: The following symbol has an ask or bid price of zero, so it is being removed: " + symbol.symbolString);
                 continue;
@@ -106,5 +98,9 @@ public class BinanceAPICaller {
                 System.out.println("Problematic symbol: " + symbol.symbolString);
             }
         }
+    }
+
+    public static boolean isMeSellingBaseCurrency(CustomEdge edge) {
+        return edge.sameDirectionAsSymbol;
     }
 }

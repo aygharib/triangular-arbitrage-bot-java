@@ -90,7 +90,7 @@ public class GraphProcessing {
             cycle.tradePrices[i] = sourceToTargetEdge.sameDirectionAsSymbol ? sourceToTargetEdge.symbol.bidPrice : sourceToTargetEdge.symbol.askPrice;
             cycle.tradeQuantities[i] = sourceToTargetEdge.sameDirectionAsSymbol ? sourceToTargetEdge.symbol.bidQuantity : sourceToTargetEdge.symbol.askQuantity;
 
-            if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
+            if (BinanceAPICaller.isMeSellingBaseCurrency(sourceToTargetEdge)) {
                 // IM SELLING THE BASE CURRENCY!!
                 cycle.tradeRates[i] = cycle.tradePrices[i];
             } else {

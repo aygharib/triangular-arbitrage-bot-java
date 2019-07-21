@@ -48,7 +48,7 @@ public class Main {
 
                     CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
-                    if (BinanceAPICaller.isMeSellingBaseCurrencyOrder(sourceToTargetEdge)) {
+                    if (BinanceAPICaller.isMeSellingBaseCurrency(sourceToTargetEdge)) {
                         fileWriter.write("Using bottom-half price\n");
                         fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Price >= " + Tools.formatPrice(cycle.tradePrices[j]) + " \n\n");
                     } else {

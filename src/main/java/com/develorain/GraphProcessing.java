@@ -15,7 +15,7 @@ public class GraphProcessing {
         List<Cycle> cycles = getCycles(graph);
 
         for (Cycle cycle: cycles) {
-            if (cycle.size >= 3 && cycle.size <= 6) {
+            if (cycle.size >= 3 && cycle.size <= 4) {
                 initializeCycleAttributes(graph, cycle);
                 computeActualTradeQuantities(cycle);
 
@@ -48,7 +48,7 @@ public class GraphProcessing {
     private static void initializeCycleAttributes(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
         computeConversionPricesAndQuantities(graph, cycle);
         convertQuantitiesToStartingCurrency(cycle);
-        computeCycleMultiplier(cycle, graph);
+        computeCycleMultiplier(cycle);
     }
 
     private static void computeActualTradeQuantities(Cycle cycle) {
@@ -73,7 +73,7 @@ public class GraphProcessing {
         return Arrays.copyOf(objectsArray, objectsArray.length, Cycle[].class);
     }
 
-    private static void computeCycleMultiplier(Cycle cycle, SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+    private static void computeCycleMultiplier(Cycle cycle) {
         for (int i = 0; i < cycle.size; i++) {
             cycle.multiplier = cycle.multiplier * cycle.tradeRates[i] * Main.TRANSACTION_FEE_RATIO;
         }
@@ -85,17 +85,20 @@ public class GraphProcessing {
             String sourceNode = cycle.cycleString.get(i);
             String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
-            CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
+            CustomEdge traversingCycleEdge = graph.getEdge(sourceNode, targetNode);
 
-            cycle.tradePrices[i] = sourceToTargetEdge.sameDirectionAsSymbol ? sourceToTargetEdge.symbol.bidPrice : sourceToTargetEdge.symbol.askPrice;
-            cycle.tradeQuantities[i] = sourceToTargetEdge.sameDirectionAsSymbol ? sourceToTargetEdge.symbol.bidQuantity : sourceToTargetEdge.symbol.askQuantity;
+            cycle.symbols[i] = traversingCycleEdge.symbol;
 
-            if (BinanceAPICaller.isMeSellingBaseCurrency(sourceToTargetEdge)) {
-                // IM SELLING THE BASE CURRENCY!!
-                cycle.tradeRates[i] = cycle.tradePrices[i];
+            // This is temporary, probably not needed later
+            cycle.worstCaseTradePrices[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidPrice : traversingCycleEdge.symbol.askPrice;
+            cycle.tradeQuantities[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidQuantity : traversingCycleEdge.symbol.askQuantity;
+
+            if (BinanceAPICaller.isMeSellingBaseCurrency(traversingCycleEdge)) {
+                // I'm selling base currency
+                cycle.tradeRates[i] = cycle.worstCaseTradePrices[i];
             } else {
-                // IM BUYING THE BASE CURRENCY!!
-                cycle.tradeRates[i] = 1.0 / cycle.tradePrices[i];
+                // I'm buying base currency
+                cycle.tradeRates[i] = 1.0 / cycle.worstCaseTradePrices[i];
             }
         }
     }

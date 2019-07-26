@@ -31,6 +31,6 @@ public class CustomEdge extends DefaultWeightedEdge {
     }
 
     public double averageCaseTradePrice() {
-        return (bestCaseTradePrice() + worstCaseTradePrice()) / 2;
+        return bestCaseTradePrice() * 0.4 + worstCaseTradePrice() * 0.6;
     }
 }

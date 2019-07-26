@@ -14,7 +14,7 @@ public class GraphProcessing {
         List<Cycle> cycles = getCycles(graph);
 
         for (Cycle cycle: cycles) {
-            if (cycle.size >= 3 && cycle.size <= 4) {
+            if (cycle.size == 3) {
                 initializeCycleAttributes(graph, cycle);
 
                 if (isDesirableCycle(cycle)) {

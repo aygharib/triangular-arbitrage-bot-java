@@ -48,7 +48,7 @@ public class Main {
 
                     CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
-                    if (BinanceAPICaller.isMeSellingBaseCurrency(sourceToTargetEdge)) {
+                    if (BinanceAPICaller.amISellingBaseCurrency(sourceToTargetEdge)) {
                         fileWriter.write("Using bottom-half price\n");
                         fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Worst case price >= " + Tools.formatPrice(cycle.edges[j].worstCaseTradePrice()) + " Average case price = " + Tools.formatPrice(cycle.edges[j].averageCaseTradePrice()) + " \n\n");
                     } else {

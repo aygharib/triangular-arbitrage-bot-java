@@ -81,7 +81,7 @@ public class GraphProcessing {
 
             tradeQuantitiesFromAPI[i] = traversingCycleEdge.sameDirectionAsSymbol ? traversingCycleEdge.symbol.bidQuantity : traversingCycleEdge.symbol.askQuantity;
 
-            if (BinanceAPICaller.isMeSellingBaseCurrency(traversingCycleEdge)) {
+            if (BinanceAPICaller.amISellingBaseCurrency(traversingCycleEdge)) {
                 // I'm selling base currency
                 cycle.edges[i].worstCaseTradeRate = cycle.edges[i].worstCaseTradePrice();
                 cycle.edges[i].averageCaseTradeRate = cycle.edges[i].averageCaseTradePrice();

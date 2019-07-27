@@ -2,6 +2,10 @@ package com.develorain;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
+import com.binance.api.client.domain.TimeInForce;
+import com.binance.api.client.domain.account.NewOrder;
+import com.binance.api.client.domain.account.NewOrderResponse;
+import com.binance.api.client.domain.account.NewOrderResponseType;
 import com.binance.api.client.domain.general.Asset;
 import com.binance.api.client.domain.market.BookTicker;
 import com.binance.api.client.exception.BinanceApiException;
@@ -71,38 +75,39 @@ public class BinanceAPICaller {
         }
     }
 
-    public static void convertCurrency(CustomEdge edge, String amountInOriginalCurrency) {
-        boolean buyFlag = amISellingBaseCurrency(edge);
+    public static void performCycle(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
+        for (int i = 0; i < cycle.size; i++) {
+            String sourceNode = cycle.cycleString.get(i);
+            String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
 
+            convertCurrency(graph.getEdge(sourceNode, targetNode), Double.toString(cycle.edges[i].tradeQuantityInBaseCurrency), Double.toString(cycle.edges[i].averageCaseTradePrice()));
+        }
+
+        System.out.println("Completed cycle");
+    }
+
+    public static void convertCurrency(CustomEdge edge, String tradeQuantityInBaseCurrency, String averageCaseTradePrice) {
         try {
             System.out.println("Convert: " + edge.sourceNode + "->" + edge.targetNode);
-            if (buyFlag) {
-                //NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketBuy(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
-                //System.out.println(newOrderResponse);
+
+            if (edge.amISellingBaseCurrency()) {
+                NewOrderResponse newOrderResponse =
+                        client.newOrder(NewOrder.limitSell(edge.symbol.symbolString, TimeInForce.GTC, tradeQuantityInBaseCurrency, averageCaseTradePrice)
+                                .newOrderRespType(NewOrderResponseType.FULL));
+                System.out.println(newOrderResponse);
             } else {
-                //NewOrderResponse newOrderResponse = client.newOrder(NewOrder.marketSell(edge.symbol, amountInOriginalCurrency).newOrderRespType(NewOrderResponseType.FULL));
-                //System.out.println(newOrderResponse);
+                NewOrderResponse newOrderResponse =
+                        client.newOrder(
+                                NewOrder.limitBuy(
+                                        edge.symbol.symbolString,
+                                        TimeInForce.GTC,
+                                        tradeQuantityInBaseCurrency,
+                                        averageCaseTradePrice).newOrderRespType(NewOrderResponseType.FULL));
+                System.out.println(newOrderResponse);
             }
         } catch (BinanceApiException e) {
             System.out.println("Transaction failed: Attempting to trade below minimum trade threshold");
             e.printStackTrace();
         }
-    }
-
-    public static void performCycle(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
-        /*
-        for (int i = 0; i < cycle.size; i++) {
-            String sourceNode = cycle.cycleString.get(i);
-            String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
-
-            convertCurrency(graph.getEdge(sourceNode, targetNode), Double.toString(cycle.tradeQuantitiesPerCurrency[i]));
-        }
-        */
-
-        System.out.println("Completed cycle");
-    }
-
-    public static boolean amISellingBaseCurrency(CustomEdge edge) {
-        return edge.sameDirectionAsSymbol;
     }
 }

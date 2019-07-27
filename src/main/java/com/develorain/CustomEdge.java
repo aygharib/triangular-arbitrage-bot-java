@@ -11,6 +11,7 @@ public class CustomEdge extends DefaultWeightedEdge {
     public double averageCaseTradeRate;
 
     public double tradeQuantity;
+    public double tradeQuantityInBaseCurrency;
 
     public boolean sameDirectionAsSymbol;
 
@@ -32,5 +33,9 @@ public class CustomEdge extends DefaultWeightedEdge {
 
     public double averageCaseTradePrice() {
         return bestCaseTradePrice() * 0.4 + worstCaseTradePrice() * 0.6;
+    }
+
+    public boolean amISellingBaseCurrency() {
+        return sameDirectionAsSymbol;
     }
 }

@@ -67,7 +67,14 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        new Main();
+        //new Main();
+        BinanceAPICaller.initialize();
+
+        Symbol symbol = new Symbol("ADABNB", 10, 10, 10, 10);
+
+        CustomEdge edge = new CustomEdge(symbol, "BNB", "ADA");
+
+        BinanceAPICaller.convertCurrency(edge, "234", "0.002128"); // 235
 
         System.out.println("Done");
         System.exit(0);

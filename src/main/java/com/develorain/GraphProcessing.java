@@ -111,6 +111,8 @@ public class GraphProcessing {
             maximumAmountToTradeInStartingCurrency = Math.min(maximumAmountToTradeInStartingCurrency, amount);
         }
 
+        maximumAmountToTradeInStartingCurrency = Math.min(maximumAmountToTradeInStartingCurrency, 0.5); // TODO: get rid of limit to 0.5 bnb
+
         cycle.edges[0].tradeQuantity = maximumAmountToTradeInStartingCurrency;
 
         for (int i = 1; i < cycle.size; i++) {

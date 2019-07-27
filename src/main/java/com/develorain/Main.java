@@ -3,6 +3,7 @@ package com.develorain;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import java.io.FileWriter;
+import java.util.Scanner;
 
 public class Main {
     public static final Double TRANSACTION_FEE_RATIO = 1 - 0.000750;
@@ -16,6 +17,27 @@ public class Main {
         Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
 
         writeCyclesToFile(sortedCyclesByMultiplier, graph);
+
+        System.out.println("Preparing to do order");
+
+        BinanceAPICaller.performCycle(sortedCyclesByMultiplier[0], true);
+
+        promptEnterKey();
+
+        System.out.println("Doing order");
+
+        if (sortedCyclesByMultiplier[0].edges[0].sourceNode.equalsIgnoreCase("BNB")) {
+            System.out.println("Cycle starts with BNB, actually doing cycle");
+            BinanceAPICaller.performCycle(sortedCyclesByMultiplier[0], false);
+        } else {
+            System.out.println("Cycle does not start with BNB, cancelling order");
+        }
+    }
+
+    public void promptEnterKey(){
+        System.out.println("Press \"ENTER\" to continue...");
+        Scanner scanner = new Scanner(System.in);
+        scanner.nextLine();
     }
 
     private SimpleDirectedWeightedGraph<String, CustomEdge> createGraph() {
@@ -48,7 +70,7 @@ public class Main {
 
                     CustomEdge sourceToTargetEdge = graph.getEdge(sourceNode, targetNode);
 
-                    if (BinanceAPICaller.amISellingBaseCurrency(sourceToTargetEdge)) {
+                    if (sourceToTargetEdge.amISellingBaseCurrency()) {
                         fileWriter.write("Using bottom-half price\n");
                         fileWriter.write(sourceNode + "--->" + targetNode + " | " + "Worst case price >= " + Tools.formatPrice(cycle.edges[j].worstCaseTradePrice()) + " Average case price = " + Tools.formatPrice(cycle.edges[j].averageCaseTradePrice()) + " \n\n");
                     } else {
@@ -67,14 +89,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        //new Main();
-        BinanceAPICaller.initialize();
-
-        Symbol symbol = new Symbol("ADABNB", 10, 10, 10, 10);
-
-        CustomEdge edge = new CustomEdge(symbol, "BNB", "ADA");
-
-        BinanceAPICaller.convertCurrency(edge, "234", "0.002128"); // 235
+        new Main();
 
         System.out.println("Done");
         System.exit(0);

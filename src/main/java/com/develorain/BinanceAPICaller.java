@@ -75,35 +75,40 @@ public class BinanceAPICaller {
         }
     }
 
-    public static void performCycle(SimpleDirectedWeightedGraph<String, CustomEdge> graph, Cycle cycle) {
-        for (int i = 0; i < cycle.size; i++) {
-            String sourceNode = cycle.cycleString.get(i);
-            String targetNode = cycle.cycleString.get((i + 1) % cycle.size);
-
-            convertCurrency(graph.getEdge(sourceNode, targetNode), Double.toString(cycle.edges[i].tradeQuantityInBaseCurrency), Double.toString(cycle.edges[i].averageCaseTradePrice()));
+    public static void performCycle(Cycle cycle, boolean dryRun) {
+        for (int i = 0; i < 1; i++) { // i < cycle.size
+            convertCurrency(cycle.edges[i], Double.toString(cycle.edges[i].tradeQuantityInBaseCurrency), Double.toString(cycle.edges[i].averageCaseTradePrice()), dryRun);
         }
 
         System.out.println("Completed cycle");
     }
 
-    public static void convertCurrency(CustomEdge edge, String tradeQuantityInBaseCurrency, String averageCaseTradePrice) {
+    public static void convertCurrency(CustomEdge edge, String tradeQuantityInBaseCurrency, String averageCaseTradePrice, boolean dryRun) {
         try {
             System.out.println("Convert: " + edge.sourceNode + "->" + edge.targetNode);
 
             if (edge.amISellingBaseCurrency()) {
-                NewOrderResponse newOrderResponse =
-                        client.newOrder(NewOrder.limitSell(edge.symbol.symbolString, TimeInForce.GTC, tradeQuantityInBaseCurrency, averageCaseTradePrice)
-                                .newOrderRespType(NewOrderResponseType.FULL));
-                System.out.println(newOrderResponse);
+                System.out.println("We are selling base currency: " + edge.symbol.symbolString + ", " + tradeQuantityInBaseCurrency + ", " + averageCaseTradePrice);
+
+                if (!dryRun) {
+                    NewOrderResponse newOrderResponse =
+                            client.newOrder(NewOrder.limitSell(edge.symbol.symbolString, TimeInForce.GTC, tradeQuantityInBaseCurrency, averageCaseTradePrice)
+                                    .newOrderRespType(NewOrderResponseType.FULL));
+                    System.out.println(newOrderResponse);
+                }
             } else {
-                NewOrderResponse newOrderResponse =
-                        client.newOrder(
-                                NewOrder.limitBuy(
-                                        edge.symbol.symbolString,
-                                        TimeInForce.GTC,
-                                        tradeQuantityInBaseCurrency,
-                                        averageCaseTradePrice).newOrderRespType(NewOrderResponseType.FULL));
-                System.out.println(newOrderResponse);
+                System.out.println("We are buying base currency: " + edge.symbol.symbolString + ", " + tradeQuantityInBaseCurrency + ", " + averageCaseTradePrice);
+
+                if (!dryRun) {
+                    NewOrderResponse newOrderResponse =
+                            client.newOrder(
+                                    NewOrder.limitBuy(
+                                            edge.symbol.symbolString,
+                                            TimeInForce.GTC,
+                                            tradeQuantityInBaseCurrency,
+                                            averageCaseTradePrice).newOrderRespType(NewOrderResponseType.FULL));
+                    System.out.println(newOrderResponse);
+                }
             }
         } catch (BinanceApiException e) {
             System.out.println("Transaction failed: Attempting to trade below minimum trade threshold");

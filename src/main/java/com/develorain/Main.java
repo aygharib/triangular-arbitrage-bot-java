@@ -18,6 +18,8 @@ public class Main {
 
         writeCyclesToFile(sortedCyclesByMultiplier, graph);
 
+        // Actually does the first trade of a cycle
+        /*
         System.out.println("Preparing to do order");
 
         BinanceAPICaller.performCycle(sortedCyclesByMultiplier[0], true);
@@ -32,6 +34,7 @@ public class Main {
         } else {
             System.out.println("Cycle does not start with BNB, cancelling order");
         }
+        */
     }
 
     public void promptEnterKey(){

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/TradingBot.iml" filepath="$PROJECT_DIR$/.idea/TradingBot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TradingBot.iml" filepath="$PROJECT_DIR$/TradingBot.iml" />
     </modules>
   </component>
 </project>

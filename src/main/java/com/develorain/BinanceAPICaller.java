@@ -19,6 +19,10 @@ public class BinanceAPICaller {
         client = factory.newRestClient();
     }
 
+    public static String doStuff() {
+        return client.getAccount().getAssetBalance("BNB").getAsset();
+    }
+
     public static void createGraphNodes(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         // Make nodes with each currency
         for (Asset asset : client.getAllAssets()) {

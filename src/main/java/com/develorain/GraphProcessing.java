@@ -9,12 +9,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class GraphProcessing {
+    private static final int CYCLE_SIZE_TO_CONSIDER = 3;
+
     public static Cycle[] getSortedCyclesByMultiplier(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
         List<Cycle> cycleObjects3to4Size = new ArrayList<>();
         List<Cycle> cycles = getCycles(graph);
 
         for (Cycle cycle: cycles) {
-            if (cycle.size == 3) {
+            if (cycle.size == CYCLE_SIZE_TO_CONSIDER) {
                 initializeCycleAttributes(graph, cycle);
 
                 if (isDesirableCycle(cycle)) {

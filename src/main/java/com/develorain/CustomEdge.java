@@ -32,7 +32,7 @@ public class CustomEdge extends DefaultWeightedEdge {
     }
 
     public double averageCaseTradePrice() {
-        return bestCaseTradePrice() * 1 + worstCaseTradePrice() * 0;
+        return bestCaseTradePrice() * 0.05 + worstCaseTradePrice() * 0.95;
     }
 
     public boolean amISellingBaseCurrency() {

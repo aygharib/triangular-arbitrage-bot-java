@@ -3,6 +3,8 @@ package com.develorain;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import java.io.FileWriter;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Scanner;
 
 public class Main {
@@ -10,13 +12,18 @@ public class Main {
     public static final int HOW_MANY_CYCLES_TO_OUTPUT = 100;
 
     private Main() {
+        long startTime, endTime;
+
+        startTime = System.currentTimeMillis();
         BinanceAPICaller.initialize();
+        endTime = System.currentTimeMillis();
+        System.out.println((endTime - startTime) + " milliseconds to create Binance API Caller");
 
-        SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
+        //SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
+        //Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
+        //writeCyclesToFile(sortedCyclesByMultiplier, graph, "cycles.txt");
 
-        Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
-
-        writeCyclesToFile(sortedCyclesByMultiplier, graph);
+        keepLooping();
 
         // Actually does the first trade of a cycle
         /*
@@ -37,7 +44,49 @@ public class Main {
         */
     }
 
-    public void promptEnterKey(){
+    public void keepLooping() {
+        long startTime, endTime;
+
+        while (true){
+            startTime = System.currentTimeMillis();
+            SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
+            endTime = System.currentTimeMillis();
+            System.out.println((endTime - startTime) + " milliseconds to create Graph");
+
+            startTime = System.currentTimeMillis();
+            Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
+            endTime = System.currentTimeMillis();
+            System.out.println((endTime - startTime) + " milliseconds to create Get Sorted Cycles");
+
+            Date date = new Date();
+            long time = date.getTime();
+            Timestamp ts = new Timestamp(time);
+            logCycles(sortedCyclesByMultiplier, graph, "2020-14-18.txt", time, ts);
+        }
+    }
+
+    public void logCycles(Cycle[] sortedCyclesByMultiplier, SimpleDirectedWeightedGraph<String, CustomEdge> graph, String fileName, long time, Timestamp ts) {
+        try {
+            FileWriter fileWriter = new FileWriter(fileName, true);
+
+            fileWriter.write(ts + ": ");
+
+            Cycle cycle = sortedCyclesByMultiplier[0];
+
+            if (cycle.worstCaseMultiplier >= 1) {
+                fileWriter.write(cycle.toString() + "\n");
+            } else {
+                fileWriter.write("No Profitable Cycle");
+            }
+
+            fileWriter.write("\n");
+            fileWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void promptEnterKey() {
         System.out.println("Press \"ENTER\" to continue...");
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
@@ -52,11 +101,10 @@ public class Main {
         return graph;
     }
 
-    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier, SimpleDirectedWeightedGraph<String, CustomEdge> graph) {
+    private void writeCyclesToFile(Cycle[] sortedCyclesByMultiplier, SimpleDirectedWeightedGraph<String, CustomEdge> graph, String fileName) {
         try {
-            FileWriter fileWriter = new FileWriter("cycles.txt");
-
-            fileWriter.write("\n\n\n\n\n");
+            FileWriter fileWriter = new FileWriter(fileName);
+            fileWriter.write("\n\n\n");
 
             for (int i = 0; i < HOW_MANY_CYCLES_TO_OUTPUT; i++) {
                 Cycle cycle = sortedCyclesByMultiplier[i];

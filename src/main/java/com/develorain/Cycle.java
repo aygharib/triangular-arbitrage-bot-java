@@ -22,7 +22,8 @@ public class Cycle implements Comparable {
 
     @Override
     public String toString() {
-        return "<~~ " + cycleString + " Worst Case Multiplier: " + Tools.formatPrice(worstCaseMultiplier) + ", Average Case Multiplier: " + Tools.formatPrice(averageCaseMultiplier) + " ~~>";
+        return cycleString + " WCM: " + Tools.formatPrice(worstCaseMultiplier) + ", ACM: " + Tools.formatPrice(averageCaseMultiplier) + " ~~>";
+        // Worst Case Multiplier, Average case Multiplier
     }
 
     @Override

@@ -19,7 +19,7 @@ public class Symbol {
 
         if (temporarilyParsable) {
             // Get asset codes for base and quote
-            // REPLACE THIS WITH REGEX
+            // Todo: Replace this with regex
             this.baseAsset = symbolString.substring(0, 3);
             this.quoteAsset = symbolString.substring(3, 6);
 

@@ -19,32 +19,14 @@ public class Main {
         endTime = System.currentTimeMillis();
         System.out.println((endTime - startTime) + " milliseconds to create Binance API Caller");
 
-        //SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
-        //Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
-        //writeCyclesToFile(sortedCyclesByMultiplier, graph, "cycles.txt");
+        SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
+        Cycle[] sortedCyclesByMultiplier = GraphProcessing.getSortedCyclesByMultiplier(graph);
+        writeCyclesToFile(sortedCyclesByMultiplier, graph, "cycles.txt");
 
-        keepLooping();
-
-        // Actually does the first trade of a cycle
-        /*
-        System.out.println("Preparing to do order");
-
-        BinanceAPICaller.performCycle(sortedCyclesByMultiplier[0], true);
-
-        promptEnterKey();
-
-        System.out.println("Doing order");
-
-        if (sortedCyclesByMultiplier[0].edges[0].sourceNode.equalsIgnoreCase("BNB")) {
-            System.out.println("Cycle starts with BNB, actually doing cycle");
-            BinanceAPICaller.performCycle(sortedCyclesByMultiplier[0], false);
-        } else {
-            System.out.println("Cycle does not start with BNB, cancelling order");
-        }
-        */
+        iterate();
     }
 
-    public void keepLooping() {
+    public void iterate() {
         long startTime, endTime;
 
         while (true){
@@ -61,7 +43,7 @@ public class Main {
             Date date = new Date();
             long time = date.getTime();
             Timestamp ts = new Timestamp(time);
-            logCycles(sortedCyclesByMultiplier, graph, "2020-14-18.txt", time, ts);
+            logCycles(sortedCyclesByMultiplier, graph, "outputCycles.txt", time, ts);
         }
     }
 

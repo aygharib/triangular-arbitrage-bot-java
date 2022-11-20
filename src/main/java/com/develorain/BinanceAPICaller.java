@@ -19,8 +19,8 @@ public class BinanceAPICaller {
         client = factory.newRestClient();
     }
 
-    public static String doStuff() {
-        return client.getAccount().getAssetBalance("BNB").getAsset();
+    public static String getStartingBalance(String currencyName) {
+        return client.getAccount().getAssetBalance(currencyName).getAsset();
     }
 
     public static void createGraphNodes(SimpleDirectedWeightedGraph<String, CustomEdge> graph) {

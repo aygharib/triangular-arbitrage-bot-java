@@ -29,7 +29,7 @@ public class Main {
     public void iterate() {
         long startTime, endTime;
 
-        while (true){
+        while (true) {
             startTime = System.currentTimeMillis();
             SimpleDirectedWeightedGraph<String, CustomEdge> graph = createGraph();
             endTime = System.currentTimeMillis();

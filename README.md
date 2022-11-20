@@ -35,6 +35,8 @@ Both algorithms solve the stated problem, but there is a difference between the 
 ## Iterative traversal
 Calculates cycles by iterating over an array of symbols and exchange rate, storing profitable cycles in an output array to be sorted from most-to-least profitable. The iterative approach will build an array once storing all the currencies supported `currencies`, and build an array/hashmap for each iteration to store all currency conversion rates between currencies `conversions`. Then, using both `currencies` and `conversions`, the profitability is calculated by iterating on all elements of `currencies` using `conversions` to lookup conversion rates. Profitable cycles are stored in a final array `profitableCycles` to be sorted before being output to the user.
 
+The big assumption with this approach, which makes it not completely viable, is that it assumes that there exists a viable trade opportunity between any two currencies. There exist currencies that are only able to convert between a few other currencies, which is vastly different to more widely adopted currencies like ETH and BTC that support many trade-pairs. Due to this fact, it makes more sense to approach this problem with a Graph rather than using an iterative approach.
+
 ### Time complexity analysis of `build array/map of conversions
 For example, consider the following case, where V is the number of supported currencies.
 ```

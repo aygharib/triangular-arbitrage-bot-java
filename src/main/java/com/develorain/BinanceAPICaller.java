@@ -15,7 +15,7 @@ public class BinanceAPICaller {
     private static BinanceApiRestClient client;
 
     public static void initialize() {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("My2zlMkv4yorboQMABkUSqcNosJEqVZNi6JzPEvQovzbiVusGrf0ZkLF9rHkQAe7", "nUecuN1O33QAYXLdY76s12BME3fLafphBhj0kUl67Cs3seYxp8xzJ8JqVD7mYwJr");
+        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(dotenv.get("API_KEY"), dotenv.get("API_SECRET"));
         client = factory.newRestClient();
     }
 

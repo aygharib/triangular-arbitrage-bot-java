@@ -1,10 +1,11 @@
 # Trading Bot
 
+triangular-arbitrage-bot monitors all currencies on the Binance crypto-currency exchange in search for triangular arbitrage opportunities. The problem this app is solves is finding all profitable profitable arbitrage opportunities in as little time as possible.
+
 <details>
 <summary>Sections</summary>
 <p>
 
-- [Description](#description)
 - [Potential approaches](#potential-approaches)
   - [Graph traversal](#graph-traversal)
     - [Floyd-Warshall algorithm](#floyd-warshall-algorithm)
@@ -14,10 +15,6 @@
 
 </p>
 </details>
-
-## Description
-
-triangular-arbitrage-bot monitors all currencies on the Binance crypto-currency exchange in search for triangular arbitrage opportunities. The problem this app is solves is finding all profitable profitable arbitrage opportunities in as little time as possible.
 
 ## Potential approaches
 ### Graph traversal

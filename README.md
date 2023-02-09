@@ -1,6 +1,6 @@
 # Trading Bot
 
-triangular-arbitrage-bot monitors all currencies on the Binance crypto-currency exchange in search for triangular arbitrage opportunities. The problem this app is solves is finding all profitable profitable arbitrage opportunities in as little time as possible.
+triangular-arbitrage-bot monitors all currencies on the Binance crypto-currency exchange in search for triangular arbitrage opportunities. The problem this app aims to solve is finding all profitable arbitrage opportunities in as little time as possible.
 
 <details>
 <summary>Sections</summary>
